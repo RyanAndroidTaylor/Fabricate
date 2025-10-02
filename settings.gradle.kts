@@ -4,5 +4,4 @@ plugins {
 rootProject.name = "Fabricate"
 
 include("script-definition")
-include("script-host")
-include("domain")
+include("runtime")

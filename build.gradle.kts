@@ -3,7 +3,7 @@ plugins {
     id("com.gradleup.shadow") version "9.2.2"
 }
 
-group = "com.dtp.fabric"
+group = "com.dtp.fabricate"
 version = "1.0-SNAPSHOT"
 
 repositories {
@@ -11,7 +11,14 @@ repositories {
 }
 
 dependencies {
-    implementation(project(":domain"))
+    implementation(project(":runtime"))
+    implementation(project(":script-definition"))
+
+    implementation("org.jetbrains.kotlin:kotlin-scripting-common")
+    implementation("org.jetbrains.kotlin:kotlin-scripting-jvm")
+    implementation("org.jetbrains.kotlin:kotlin-scripting-jvm-host")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
+
     testImplementation(kotlin("test"))
 }
 
@@ -31,6 +38,6 @@ tasks.shadowJar {
 
 tasks.jar {
     manifest {
-        attributes("Main-Class" to "com.dtp.fabric.MainKt")
+        attributes("Main-Class" to "com.dtp.fabricate.MainKt")
     }
 }

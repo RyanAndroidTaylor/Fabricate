@@ -3,7 +3,7 @@ plugins {
     kotlin("jvm")
 }
 
-group = "com.dtp.fabric"
+group = "com.dtp.fabricate"
 version = "1.0-SNAPSHOT"
 
 repositories {
@@ -11,7 +11,8 @@ repositories {
 }
 
 dependencies {
-    implementation(project(":domain"))
+    api(project(":runtime"))
+//    implementation(project(":domain"))
 
     implementation("org.jetbrains.kotlin:kotlin-scripting-common")
     implementation("org.jetbrains.kotlin:kotlin-scripting-jvm")
