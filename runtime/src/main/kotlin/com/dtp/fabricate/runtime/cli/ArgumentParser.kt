@@ -9,7 +9,7 @@ object ArgumentParser {
 
         var i = 0
 
-        while (i < args.lastIndex) {
+        while (i <= args.lastIndex) {
             when (val argument = args[i]) {
                 "--listCachedDeps" ->
                     finalArguments.add(Argument.ListCachedDeps)

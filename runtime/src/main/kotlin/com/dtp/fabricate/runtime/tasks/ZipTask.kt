@@ -1,6 +1,7 @@
 package com.dtp.fabricate.runtime.tasks
 
 import java.io.File
+import java.util.jar.JarInputStream
 import java.util.zip.CRC32
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
@@ -52,12 +53,13 @@ class ZipTask(val root: File) : Task {
         zipStream.close()
     }
 
+    // As of right now this does not support extra large files. The file content is read, compressed and written
+    // in a single pass so extra larges files could run into memory issues
     private fun compressFile(file: File) {
         val localQualifiedName = file.absolutePath.substring(discardRange)
 
         println("Compressing file: $localQualifiedName")
 
-        //TODO Obviously this would not work with huge files since it read the entire contents of the file all at once
         val bytes = file.readBytes()
 
         val entry = ZipEntry(localQualifiedName).apply {

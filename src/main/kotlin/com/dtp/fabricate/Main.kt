@@ -22,6 +22,7 @@ import kotlin.script.experimental.jvmhost.createJvmCompilationConfigurationFromT
 
 fun main(vararg args: String) {
     println("Starting Fabricate....")
+    println("With args: ${args.joinToString()}")
 
     ArgumentParser.parse(args.asList()).either(
         onValue = { arguments ->

@@ -33,7 +33,7 @@ java {
 }
 
 tasks.shadowJar {
-    destinationDirectory = File("example/")
+    destinationDirectory = File("example/fabricate/")
 }
 
 tasks.jar {
