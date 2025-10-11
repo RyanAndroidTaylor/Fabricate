@@ -1,9 +1,15 @@
 package com.dtp.fabricate.runtime.models
 
 object Project {
-    var name: String = ""
+    var name: String = "abc"
 
-    fun project(block: Project.() -> Unit) {
-        this.block()
+    var dependencyScope: DependencyScope? = null
+        private set
+
+
+    fun dependencies(block: DependencyScope.() -> Unit) {
+        dependencyScope = DependencyScope().apply {
+            block()
+        }
     }
 }

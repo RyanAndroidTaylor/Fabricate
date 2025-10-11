@@ -1,13 +1,15 @@
 package com.dtp.fabricate
 
-import com.dtp.fabricate.runtime.FabricError
+import com.dtp.fabricate.runtime.cli.ArgumentError
 import com.dtp.fabricate.runtime.cli.Argument
 import com.dtp.fabricate.runtime.cli.ArgumentParser
+import com.dtp.fabricate.runtime.deps.ResolveDependenciesTask
 import com.dtp.fabricate.runtime.either
 import com.dtp.fabricate.runtime.models.Project
 import com.dtp.fabricate.runtime.tasks.BuildTask
 import com.dtp.fabricate.runtime.tasks.RunTask
 import com.dtp.fabricate.runtime.tasks.Task
+import com.dtp.fabricate.runtime.tasks.ZipTask
 import java.io.File
 import kotlin.script.experimental.api.EvaluationResult
 import kotlin.script.experimental.api.ResultWithDiagnostics
@@ -33,9 +35,16 @@ fun main(vararg args: String) {
                 }
             }
 
-            val task: Task? = when {
-                arguments.contains(Argument.Build) -> BuildTask(Project)
-                arguments.contains(Argument.Run) -> RunTask(Project)
+            val task: Task? = when (val argument = arguments.firstOrNull()) {
+                Argument.Build -> BuildTask(Project)
+                Argument.Run -> RunTask(Project)
+
+                Argument.ListCachedDeps ->
+                    ResolveDependenciesTask(Project.dependencyScope?.dependencies ?: setOf())
+
+                is Argument.Zip ->
+                    ZipTask(File(argument.file))
+
                 else -> {
                     println("No arguments were passed so no work was done")
 
@@ -47,8 +56,11 @@ fun main(vararg args: String) {
         },
         onError = {
             when (it) {
-                FabricError.ConflictingArguments ->
+                ArgumentError.ConflictingArguments ->
                     println("FAILED...\n Founding conflicting arguments.")
+
+                is ArgumentError.MissingArgument ->
+                    println("FAILED...\n${it.message}")
             }
         }
     )

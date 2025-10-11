@@ -14,8 +14,7 @@ abstract class Fabricate
 
 object Config : ScriptCompilationConfiguration(
     body = {
-        defaultImports("com.dtp.fabricate.runtime.models.Project.project")
-        defaultImports("com.dtp.fabricate.runtime.models.Project")
+        defaultImports("com.dtp.fabricate.runtime.models.Project.*")
 
         jvm {
             dependenciesFromClassContext(Fabricate::class, wholeClasspath = true)

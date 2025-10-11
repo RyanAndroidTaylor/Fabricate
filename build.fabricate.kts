@@ -1,7 +1,5 @@
-project {
-    name = "Testing Fabricate"
+name = "Fabricate"
 
-    println("Name of project: $name")
+dependencies {
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
 }
-
-Project

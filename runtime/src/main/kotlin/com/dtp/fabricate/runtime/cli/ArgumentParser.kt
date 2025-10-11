@@ -1,29 +1,44 @@
 package com.dtp.fabricate.runtime.cli
 
 import com.dtp.fabricate.runtime.Either
-import com.dtp.fabricate.runtime.FabricError
+import com.dtp.fabricate.runtime.cli.ArgumentError
 
 object ArgumentParser {
-    fun parse(args: List<String>): Either<List<Argument>, FabricError> {
+    fun parse(args: List<String>): Either<List<Argument>, ArgumentError> {
         val finalArguments = mutableListOf<Argument>()
 
-        args.forEach { argument ->
-            when (argument) {
+        var i = 0
+
+        while (i < args.lastIndex) {
+            when (val argument = args[i]) {
+                "--listCachedDeps" ->
+                    finalArguments.add(Argument.ListCachedDeps)
                 "-build" -> {
                     if (hasConflictingArguments(argument, args)) {
-                        return Either.Error(FabricError.ConflictingArguments)
+                        return Either.Error(ArgumentError.ConflictingArguments)
                     } else {
                         finalArguments.add(Argument.Build)
                     }
                 }
                 "-run" -> {
                     if (hasConflictingArguments(argument, args)) {
-                        return Either.Error(FabricError.ConflictingArguments)
+                        return Either.Error(ArgumentError.ConflictingArguments)
                     } else {
                         finalArguments.add(Argument.Run)
                     }
                 }
+                "-zip" -> {
+                    if (args.lastIndex <= i)  {
+                        return Either.Error(ArgumentError.MissingArgument("-zip requires a file to compress"))
+                    }
+
+                    finalArguments.add(Argument.Zip(args[i + 1]))
+
+                    i++
+                }
             }
+
+            i++
         }
 
         return Either.Value(finalArguments)

@@ -4,9 +4,9 @@ import com.dtp.fabricate.runtime.models.Project
 
 class BuildTask(val project: Project) : Task {
     override fun run() {
-        println("Building ${Project.name}...")
+        println("Building ${project.name}...")
 
-        val processBuilder = ProcessBuilder("/bin/bash", "-c", "kotlinc Example.kt -include-runtime -d Example.jar")
+        val processBuilder = ProcessBuilder("/bin/bash", "-c", "kotlinc Example.kt -d Example.jar")
             .redirectOutput(ProcessBuilder.Redirect.PIPE)
             .redirectError(ProcessBuilder.Redirect.PIPE)
             .start()
