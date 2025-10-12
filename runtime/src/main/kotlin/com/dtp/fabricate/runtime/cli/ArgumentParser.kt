@@ -1,7 +1,6 @@
 package com.dtp.fabricate.runtime.cli
 
 import com.dtp.fabricate.runtime.Either
-import com.dtp.fabricate.runtime.cli.ArgumentError
 
 object ArgumentParser {
     fun parse(args: List<String>): Either<List<Argument>, ArgumentError> {
@@ -11,8 +10,8 @@ object ArgumentParser {
 
         while (i <= args.lastIndex) {
             when (val argument = args[i]) {
-                "--listCachedDeps" ->
-                    finalArguments.add(Argument.ListCachedDeps)
+                "-sync" ->
+                    finalArguments.add(Argument.Sync)
                 "-build" -> {
                     if (hasConflictingArguments(argument, args)) {
                         return Either.Error(ArgumentError.ConflictingArguments)

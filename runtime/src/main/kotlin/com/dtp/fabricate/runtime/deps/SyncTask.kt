@@ -1,12 +1,24 @@
 package com.dtp.fabricate.runtime.deps
 
+import com.dtp.fabricate.runtime.models.DependencyScope
+import com.dtp.fabricate.runtime.network.Network
 import com.dtp.fabricate.runtime.tasks.Task
 import java.io.File
+import java.net.URI
+import java.net.URL
 
-class ResolveDependenciesTask(val dependencies: Set<String>) : Task {
+class SyncTask(val dependencyScope: DependencyScope?) : Task {
+
+    val network = Network()
 
     override fun run() {
         println("Resolving dependencies...")
+
+        val dependencies = dependencyScope?.dependencies ?: let {
+            print("Build script does not have dependencies block")
+
+            return
+        }
 
         val cache = DependencyCache(getDependencyCacheDir())
 
@@ -18,6 +30,21 @@ class ResolveDependenciesTask(val dependencies: Set<String>) : Task {
             if (dependency != null) {
                 println("Found Dependency ${location.cacheKey}")
             } else {
+                println("CacheLocation: ${getDependencyCacheDir()}/${location.cacheKey}/${location.fileName}")
+                val bytes = network.download(URI(location.remoteUrl).toURL())
+
+                val directory = File("${getDependencyCacheDir()}/${location.cacheKey}/")
+                val file = File(directory, location.fileName)
+
+                if (!directory.exists()) {
+                    directory.mkdirs()
+                }
+
+                if (!file.exists()) {
+                    file.createNewFile()
+                }
+
+                file.writeBytes(bytes)
                 // TODO download an return file
             }
         }
@@ -51,6 +78,7 @@ class ResolveDependenciesTask(val dependencies: Set<String>) : Task {
         val version = segments[2]
 
         return DependencyLocation(
+            fileName = "$version.jar",
             cacheKey = "$path/$id/$version",
             remoteUrl = "https://repo1.maven.org/maven2/$path/$id/$version/$id-$version.jar"
         )
@@ -58,6 +86,7 @@ class ResolveDependenciesTask(val dependencies: Set<String>) : Task {
 }
 
 private data class DependencyLocation(
+    val fileName: String,
     val cacheKey: String,
     val remoteUrl: String
 )

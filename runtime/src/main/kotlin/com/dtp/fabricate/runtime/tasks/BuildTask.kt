@@ -2,6 +2,8 @@ package com.dtp.fabricate.runtime.tasks
 
 import com.dtp.fabricate.runtime.models.Project
 
+//TODO Need to pull dependencies from cache. Which means this task will depend on SyncTask to make sure dependencies are
+// downloaded.
 class BuildTask(val project: Project) : Task {
     override fun run() {
         println("Building ${project.name}...")

@@ -3,7 +3,7 @@ package com.dtp.fabricate
 import com.dtp.fabricate.runtime.cli.ArgumentError
 import com.dtp.fabricate.runtime.cli.Argument
 import com.dtp.fabricate.runtime.cli.ArgumentParser
-import com.dtp.fabricate.runtime.deps.ResolveDependenciesTask
+import com.dtp.fabricate.runtime.deps.SyncTask
 import com.dtp.fabricate.runtime.either
 import com.dtp.fabricate.runtime.models.Project
 import com.dtp.fabricate.runtime.tasks.BuildTask
@@ -40,8 +40,8 @@ fun main(vararg args: String) {
                 Argument.Build -> BuildTask(Project)
                 Argument.Run -> RunTask(Project)
 
-                Argument.ListCachedDeps ->
-                    ResolveDependenciesTask(Project.dependencyScope?.dependencies ?: setOf())
+                Argument.Sync ->
+                    SyncTask(Project.dependencyScope)
 
                 is Argument.Zip ->
                     ZipTask(File(argument.file))
