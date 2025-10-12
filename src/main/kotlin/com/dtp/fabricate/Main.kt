@@ -6,7 +6,8 @@ import com.dtp.fabricate.runtime.cli.ArgumentParser
 import com.dtp.fabricate.runtime.deps.SyncTask
 import com.dtp.fabricate.runtime.either
 import com.dtp.fabricate.runtime.models.Project
-import com.dtp.fabricate.runtime.tasks.BuildTask
+import com.dtp.fabricate.runtime.tasks.InfoTask
+import com.dtp.fabricate.runtime.tasks.JarTask
 import com.dtp.fabricate.runtime.tasks.RunTask
 import com.dtp.fabricate.runtime.tasks.Task
 import com.dtp.fabricate.runtime.tasks.ZipTask
@@ -21,8 +22,7 @@ import kotlin.script.experimental.jvmhost.BasicJvmScriptingHost
 import kotlin.script.experimental.jvmhost.createJvmCompilationConfigurationFromTemplate
 
 fun main(vararg args: String) {
-    println("Starting Fabricate....")
-    println("With args: ${args.joinToString()}")
+    println("Fabricate started with args ${args.joinToString()}")
 
     ArgumentParser.parse(args.asList()).either(
         onValue = { arguments ->
@@ -37,7 +37,8 @@ fun main(vararg args: String) {
             }
 
             val task: Task? = when (val argument = arguments.firstOrNull()) {
-                Argument.Build -> BuildTask(Project)
+                Argument.Info -> InfoTask(Project)
+                Argument.Jar -> Project.tasks.jar
                 Argument.Run -> RunTask(Project)
 
                 Argument.Sync ->

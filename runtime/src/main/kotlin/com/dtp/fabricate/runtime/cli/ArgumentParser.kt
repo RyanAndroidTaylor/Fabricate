@@ -10,15 +10,20 @@ object ArgumentParser {
 
         while (i <= args.lastIndex) {
             when (val argument = args[i]) {
+                "--info" ->
+                    finalArguments.add(Argument.Info)
+
                 "-sync" ->
                     finalArguments.add(Argument.Sync)
-                "-build" -> {
+
+                "-jar" -> {
                     if (hasConflictingArguments(argument, args)) {
                         return Either.Error(ArgumentError.ConflictingArguments)
                     } else {
-                        finalArguments.add(Argument.Build)
+                        finalArguments.add(Argument.Jar)
                     }
                 }
+
                 "-run" -> {
                     if (hasConflictingArguments(argument, args)) {
                         return Either.Error(ArgumentError.ConflictingArguments)
@@ -26,8 +31,9 @@ object ArgumentParser {
                         finalArguments.add(Argument.Run)
                     }
                 }
+
                 "-zip" -> {
-                    if (args.lastIndex <= i)  {
+                    if (args.lastIndex <= i) {
                         return Either.Error(ArgumentError.MissingArgument("-zip requires a file to compress"))
                     }
 

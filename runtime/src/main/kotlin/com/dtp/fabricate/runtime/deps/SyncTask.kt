@@ -15,7 +15,7 @@ class SyncTask(val dependencyScope: DependencyScope?) : Task {
         println("Resolving dependencies...")
 
         val dependencies = dependencyScope?.dependencies ?: let {
-            print("Build script does not have dependencies block")
+            print("Build script does not have a dependencies block")
 
             return
         }
@@ -30,7 +30,7 @@ class SyncTask(val dependencyScope: DependencyScope?) : Task {
             if (dependency != null) {
                 println("Found Dependency ${location.cacheKey}")
             } else {
-                println("CacheLocation: ${getDependencyCacheDir()}/${location.cacheKey}/${location.fileName}")
+                println("Downloading: ${getDependencyCacheDir()}/${location.cacheKey}/${location.fileName}")
                 val bytes = network.download(URI(location.remoteUrl).toURL())
 
                 val directory = File("${getDependencyCacheDir()}/${location.cacheKey}/")
@@ -45,11 +45,8 @@ class SyncTask(val dependencyScope: DependencyScope?) : Task {
                 }
 
                 file.writeBytes(bytes)
-                // TODO download an return file
             }
         }
-
-        //TODO Download all needed dependencies
     }
 
     private fun getDependencyCacheDir(): File {

@@ -6,6 +6,10 @@ object Project {
     var dependencyScope: DependencyScope? = null
         private set
 
+    private val taskContainer = TaskContainer()
+
+    val tasks: TaskContainer
+        get() = taskContainer
 
     fun dependencies(block: DependencyScope.() -> Unit) {
         dependencyScope = DependencyScope().apply {
