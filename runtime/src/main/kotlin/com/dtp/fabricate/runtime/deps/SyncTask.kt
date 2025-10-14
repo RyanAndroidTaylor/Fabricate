@@ -50,6 +50,7 @@ class SyncTask(val dependencyScope: DependencyScope?) : Task {
     }
 
     private fun getDependencyCacheDir(): File {
+        //TODO Need to figure out how to get to ~/ dir
         val root = File("/Users/ryantaylor/.fabricate/")
 
         if (!root.exists()) {

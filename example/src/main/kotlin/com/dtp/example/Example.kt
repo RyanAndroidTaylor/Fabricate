@@ -1,11 +1,9 @@
 package com.dtp.example
 
-//import com.dtp.dep.ExampleDep
+import com.dtp.example.other.Other
 
 fun main() {
-//    val dep = ExampleDep()
-
     println("Example App")
 
-//    dep.printMessage()
+    Other.logOther()
 }
