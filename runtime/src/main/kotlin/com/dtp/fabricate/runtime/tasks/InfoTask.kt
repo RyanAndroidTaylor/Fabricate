@@ -12,7 +12,7 @@ class InfoTask(val project: Project) : Task {
             }
         }
         println("    JarTask:")
-        println("        Package: ${project.tasks.jar.mainPackage}")
+        println("        Package: ${project.projectPackage}")
         println("        MainClass: ${project.tasks.jar.mainClass}")
     }
 }

@@ -28,7 +28,7 @@ class SyncTask(val dependencyScope: DependencyScope?) : Task {
             val dependency = cache.find(location.cacheKey)
 
             if (dependency != null) {
-                println("Found Dependency ${location.cacheKey}")
+                println("Dependency (UP TO DATE): ${location.cacheKey}")
             } else {
                 println("Downloading: ${getDependencyCacheDir()}/${location.cacheKey}/${location.fileName}")
                 val bytes = network.download(URI(location.remoteUrl).toURL())
@@ -45,6 +45,7 @@ class SyncTask(val dependencyScope: DependencyScope?) : Task {
                 }
 
                 file.writeBytes(bytes)
+                println("Complete")
             }
         }
     }

@@ -1,4 +1,5 @@
 name = "Fabricate"
+projectPackage = "com.dtp.fabricate"
 
 dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
@@ -6,6 +7,5 @@ dependencies {
 }
 
 tasks.jar {
-    mainPackage = "com.dtp.fabricate"
     mainClass = "Main.kt"
 }

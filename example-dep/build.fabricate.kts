@@ -1,6 +1,6 @@
 name = "Example"
+projectPackage = "com.dtp.dep"
 
 tasks.jar {
-    mainPackage = "com.dtp.dep"
     mainClass = "ExampleDep.kt"
 }

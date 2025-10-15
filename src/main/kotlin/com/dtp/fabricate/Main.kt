@@ -1,13 +1,13 @@
 package com.dtp.fabricate
 
-import com.dtp.fabricate.runtime.cli.ArgumentError
 import com.dtp.fabricate.runtime.cli.Argument
+import com.dtp.fabricate.runtime.cli.ArgumentError
 import com.dtp.fabricate.runtime.cli.ArgumentParser
 import com.dtp.fabricate.runtime.deps.SyncTask
 import com.dtp.fabricate.runtime.either
 import com.dtp.fabricate.runtime.models.Project
+import com.dtp.fabricate.runtime.tasks.BuildTask
 import com.dtp.fabricate.runtime.tasks.InfoTask
-import com.dtp.fabricate.runtime.tasks.JarTask
 import com.dtp.fabricate.runtime.tasks.RunTask
 import com.dtp.fabricate.runtime.tasks.Task
 import com.dtp.fabricate.runtime.tasks.ZipTask
@@ -38,6 +38,7 @@ fun main(vararg args: String) {
 
             val task: Task? = when (val argument = arguments.firstOrNull()) {
                 Argument.Info -> InfoTask(Project)
+                Argument.Build -> BuildTask()
                 Argument.Jar -> Project.tasks.jar
                 Argument.Run -> RunTask(Project)
 

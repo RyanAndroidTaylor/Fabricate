@@ -16,6 +16,9 @@ object ArgumentParser {
                 "-sync" ->
                     finalArguments.add(Argument.Sync)
 
+                "-build" ->
+                    finalArguments.add(Argument.Build)
+
                 "-jar" -> {
                     if (hasConflictingArguments(argument, args)) {
                         return Either.Error(ArgumentError.ConflictingArguments)

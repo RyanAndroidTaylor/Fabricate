@@ -4,6 +4,7 @@ sealed interface Argument {
     object Jar : Argument
     object Run : Argument
     object Sync : Argument
+    object Build : Argument
     object Info : Argument
 
     data class Zip(val file: String) : Argument

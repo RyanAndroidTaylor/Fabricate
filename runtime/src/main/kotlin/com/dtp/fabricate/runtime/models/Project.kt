@@ -1,7 +1,11 @@
 package com.dtp.fabricate.runtime.models
 
 object Project {
-    var name: String = "abc"
+    lateinit var name: String
+    lateinit var projectPackage: String
+
+    val packageAsDir: String
+        get() = projectPackage.replace('.', '/')
 
     var dependencyScope: DependencyScope? = null
         private set
