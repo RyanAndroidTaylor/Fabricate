@@ -32,7 +32,7 @@ fun main(vararg args: String) {
 
             res.reports.forEach {
                 if (it.severity > ScriptDiagnostic.Severity.DEBUG) {
-                    println(" : ${it.message}" + if (it.exception == null) "" else ": ${it.exception}")
+                    println("\u001B[31mError: ${it.message}" + if (it.exception == null) "" else ": ${it.exception}" + "\u001B[0m")
                 }
             }
 

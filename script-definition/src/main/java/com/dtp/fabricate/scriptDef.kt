@@ -1,8 +1,10 @@
 package com.dtp.fabricate
 
+import com.dtp.fabricate.runtime.models.Project
 import kotlin.script.experimental.annotations.KotlinScript
 import kotlin.script.experimental.api.ScriptCompilationConfiguration
 import kotlin.script.experimental.api.defaultImports
+import kotlin.script.experimental.api.implicitReceivers
 import kotlin.script.experimental.jvm.dependenciesFromClassContext
 import kotlin.script.experimental.jvm.jvm
 
@@ -16,6 +18,7 @@ object Config : ScriptCompilationConfiguration(
     body = {
         defaultImports(
             "com.dtp.fabricate.runtime.models.Project.*",
+            "com.dtp.fabricate.runtime.tasks.Task",
             "com.dtp.fabricate.runtime.tasks.JarTask.*",
             "com.dtp.fabricate.runtime.models.TaskContainer.*"
         )

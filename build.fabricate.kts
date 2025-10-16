@@ -9,3 +9,18 @@ dependencies {
 tasks.jar {
     mainClass = "Main.kt"
 }
+
+tasks.register("MyTask", MyTask::class) {
+    logTaskInfo()
+}
+
+class MyTask : Task {
+    override fun run() {
+        println("Running From MyTask")
+        logTaskInfo()
+    }
+
+    fun logTaskInfo() {
+        println("Logging Task Info")
+    }
+}
