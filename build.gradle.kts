@@ -34,6 +34,8 @@ java {
 
 tasks.shadowJar {
     destinationDirectory = File("example/fabricate/")
+
+    dependsOn()
 }
 
 tasks.jar {

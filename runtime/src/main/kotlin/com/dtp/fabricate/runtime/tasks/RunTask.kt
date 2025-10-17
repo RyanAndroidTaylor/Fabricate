@@ -3,7 +3,7 @@ package com.dtp.fabricate.runtime.tasks
 import com.dtp.fabricate.runtime.models.Project
 import java.io.File
 
-class RunTask(val project: Project) : Task {
+class RunTask(val project: Project) : AbstractTask() {
     override fun run() {
         println("Running...")
         var runnable = getProjectRunnable()

@@ -1,6 +1,9 @@
 package com.dtp.fabricate.runtime.cli
 
 import com.dtp.fabricate.runtime.Either
+import com.dtp.fabricate.runtime.models.Project
+import com.dtp.fabricate.runtime.tasks.ZipTask
+import java.io.File
 
 object ArgumentParser {
     fun parse(args: List<String>): Either<List<Argument>, ArgumentError> {
@@ -40,7 +43,11 @@ object ArgumentParser {
                         return Either.Error(ArgumentError.MissingArgument("-zip requires a file to compress"))
                     }
 
-                    finalArguments.add(Argument.Zip(args[i + 1]))
+                    Project.tasks.named<ZipTask>("zip") {
+                        root = File(args[i + 1])
+                    }
+
+                    finalArguments.add(Argument.Zip)
 
                     i++
                 }

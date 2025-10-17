@@ -2,8 +2,10 @@ package com.dtp.fabricate.runtime.tasks
 
 import com.dtp.fabricate.runtime.models.Project
 
-class InfoTask(val project: Project) : Task {
+class InfoTask : AbstractTask() {
     override fun run() {
+        val project = Project
+
         println("Project: ${project.name}")
         project.dependencyScope?.let { scope ->
             println("    Dependencies:")

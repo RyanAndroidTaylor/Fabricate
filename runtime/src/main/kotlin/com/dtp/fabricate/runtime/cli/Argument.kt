@@ -1,11 +1,10 @@
 package com.dtp.fabricate.runtime.cli
 
 sealed interface Argument {
-    object Jar : Argument
-    object Run : Argument
-    object Sync : Argument
-    object Build : Argument
-    object Info : Argument
-
-    data class Zip(val file: String) : Argument
+    data object Jar : Argument
+    data object Run : Argument
+    data object Sync : Argument
+    data object Build : Argument
+    data object Info : Argument
+    data object Zip : Argument
 }

@@ -1,16 +1,17 @@
 package com.dtp.fabricate.runtime.tasks
 
 import java.io.File
-import java.util.jar.JarInputStream
 import java.util.zip.CRC32
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 
-class ZipTask(val root: File) : Task {
+class ZipTask : AbstractTask() {
 
-    private val discardRange = root.absolutePath.substring(0, root.absolutePath.length - this@ZipTask.root.name.length).length
+    lateinit var root: File
 
     lateinit var zipStream: ZipOutputStream
+
+    private val discardRange = root.absolutePath.substring(0, root.absolutePath.length - this@ZipTask.root.name.length).length
 
     override fun run() {
         println("Zipping...")

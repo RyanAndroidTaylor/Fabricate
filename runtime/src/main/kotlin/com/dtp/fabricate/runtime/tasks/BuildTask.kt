@@ -5,7 +5,7 @@ import com.dtp.fabricate.runtime.KOTLIN_SRC_DIR
 import com.dtp.fabricate.runtime.models.Project
 import java.io.File
 
-class BuildTask : Task {
+class BuildTask : AbstractTask() {
     override fun run() {
         println("Building ${Project.name}")
 

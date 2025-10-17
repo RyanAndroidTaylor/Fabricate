@@ -6,10 +6,11 @@ import com.dtp.fabricate.runtime.cli.ArgumentParser
 import com.dtp.fabricate.runtime.deps.SyncTask
 import com.dtp.fabricate.runtime.either
 import com.dtp.fabricate.runtime.models.Project
+import com.dtp.fabricate.runtime.models.TaskContainer
 import com.dtp.fabricate.runtime.tasks.BuildTask
 import com.dtp.fabricate.runtime.tasks.InfoTask
+import com.dtp.fabricate.runtime.tasks.JarTask
 import com.dtp.fabricate.runtime.tasks.RunTask
-import com.dtp.fabricate.runtime.tasks.Task
 import com.dtp.fabricate.runtime.tasks.ZipTask
 import java.io.File
 import kotlin.script.experimental.api.EvaluationResult
@@ -26,6 +27,10 @@ fun main(vararg args: String) {
 
     ArgumentParser.parse(args.asList()).either(
         onValue = { arguments ->
+            // We want to register and configure all defaults tasks before running the script.
+            // This way the script can override the default configuration.
+            Project.tasks.registerDefaultTasks()
+
             val buildScript = File("./build.fabricate.kts")
 
             val res = evalFile(buildScript)
@@ -36,26 +41,26 @@ fun main(vararg args: String) {
                 }
             }
 
-            val task: Task? = when (val argument = arguments.firstOrNull()) {
-                Argument.Info -> InfoTask(Project)
-                Argument.Build -> BuildTask()
-                Argument.Jar -> Project.tasks.jar
-                Argument.Run -> RunTask(Project)
+            with(Project.tasks) {
+                when (arguments.firstOrNull()) {
+                    Argument.Info -> enqueueTask("info")
+                    Argument.Build -> enqueueTask("build")
+                    Argument.Jar -> enqueueTask("jar")
+                    Argument.Run -> enqueueTask("Run")
+                    Argument.Sync -> enqueueTask("sync")
+                    is Argument.Zip -> enqueueTask("zip")
 
-                Argument.Sync ->
-                    SyncTask(Project.dependencyScope)
+                    else -> {
+                        println("No arguments were passed so no work was done")
 
-                is Argument.Zip ->
-                    ZipTask(File(argument.file))
+                        null
+                    }
+                }
 
-                else -> {
-                    println("No arguments were passed so no work was done")
-
-                    null
+                Project.tasks.generateTaskGraph().forEach { provider ->
+                    provider.task.run()
                 }
             }
-
-            task?.run()
         },
         onError = {
             when (it) {
@@ -67,6 +72,26 @@ fun main(vararg args: String) {
             }
         }
     )
+}
+
+private fun TaskContainer.registerDefaultTasks() {
+    register("info", InfoTask::class)
+
+    register("sync", SyncTask::class)
+
+    register("build", BuildTask::class) {
+        dependsOn("sync")
+    }
+
+    register("run", RunTask::class) {
+        dependsOn("build")
+    }
+
+    register("jar", JarTask::class) {
+        dependsOn("build")
+    }
+
+    register("zip", ZipTask::class)
 }
 
 private fun evalFile(scriptFile: File): ResultWithDiagnostics<EvaluationResult> {

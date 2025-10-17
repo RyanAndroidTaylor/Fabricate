@@ -10,17 +10,14 @@ tasks.jar {
     mainClass = "Main.kt"
 }
 
-tasks.register("MyTask", MyTask::class) {
-    logTaskInfo()
+tasks.register<MyTask>("MyTask", MyTask::class) {
+    println("Configuring MyTask")
 }
 
-class MyTask : Task {
-    override fun run() {
-        println("Running From MyTask")
-        logTaskInfo()
-    }
+tasks.enqueueTask("MyTask")
 
-    fun logTaskInfo() {
-        println("Logging Task Info")
+class MyTask : AbstractTask() {
+    override fun run() {
+        println("Running MyTask")
     }
 }

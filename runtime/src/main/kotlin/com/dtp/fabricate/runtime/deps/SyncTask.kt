@@ -2,12 +2,13 @@ package com.dtp.fabricate.runtime.deps
 
 import com.dtp.fabricate.runtime.models.DependencyScope
 import com.dtp.fabricate.runtime.network.Network
+import com.dtp.fabricate.runtime.tasks.AbstractTask
 import com.dtp.fabricate.runtime.tasks.Task
 import java.io.File
 import java.net.URI
 import java.net.URL
 
-class SyncTask(val dependencyScope: DependencyScope?) : Task {
+class SyncTask(val dependencyScope: DependencyScope?) : AbstractTask() {
 
     val network = Network()
 
