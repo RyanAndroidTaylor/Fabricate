@@ -3,13 +3,13 @@ package com.dtp.fabricate.runtime.tasks
 import com.dtp.fabricate.runtime.models.Project
 import java.io.File
 
-class RunTask(val project: Project) : AbstractTask() {
-    override fun run() {
+class RunTask : AbstractTask() {
+    override fun execute() {
         println("Running...")
         var runnable = getProjectRunnable()
 
         if (runnable == null) {
-            println("Failed to find runnable for ${project.name}")
+            println("Failed to find runnable for ${Project.name}")
 
             return
         }

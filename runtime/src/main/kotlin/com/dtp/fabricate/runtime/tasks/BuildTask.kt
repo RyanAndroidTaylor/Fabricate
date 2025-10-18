@@ -6,7 +6,7 @@ import com.dtp.fabricate.runtime.models.Project
 import java.io.File
 
 class BuildTask : AbstractTask() {
-    override fun run() {
+    override fun execute() {
         println("Building ${Project.name}")
 
         val commandBuilder = StringBuilder()

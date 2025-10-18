@@ -7,7 +7,7 @@ import com.dtp.fabricate.runtime.models.Project
 class JarTask : AbstractTask() {
     var mainClass: String? = null
 
-    override fun run() {
+    override fun execute() {
         println("Generating Jar for ${Project.name}...")
 
         val commandBuilder = StringBuilder()

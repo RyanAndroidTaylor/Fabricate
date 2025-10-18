@@ -15,10 +15,6 @@ class TaskContainer {
      */
     private val taskRegistry: MutableMap<String, TaskProvider<*>> = mutableMapOf()
 
-    /**
-     * Keys of the tasks that have been explicitly queued for execution.
-     */
-    private val queuedTasks = mutableSetOf<String>()
 
     @Suppress("UNCHECKED_CAST")
     val jar: JarTask
@@ -26,9 +22,9 @@ class TaskContainer {
 
     fun hasTask(taskName: String): Boolean = taskRegistry.contains(taskName)
 
-    fun enqueueTask(taskName: String) {
-        //TODO Should we throw error if multiple of the same tasks are added?
-        queuedTasks.add(taskName)
+    @Suppress("UNCHECKED_CAST")
+    fun <T: Task> named(taskName: String): TaskProvider<T> {
+        return taskRegistry[taskName] as TaskProvider<T>
     }
 
     /**
@@ -66,11 +62,5 @@ class TaskContainer {
     @Suppress("UNCHECKED_CAST")
     fun jar(action: JarTask.() -> Unit) {
         (taskRegistry["jar"] as TaskProvider<JarTask>).configure(action)
-    }
-
-    fun generateTaskGraph(): List<TaskProvider<*>> {
-        return queuedTasks.map {
-            taskRegistry[it]!!
-        }
     }
 }

@@ -8,3 +8,15 @@ dependencies {
 tasks.jar {
     mainClass = "Example.kt"
 }
+
+tasks.register("MyTask", MyTask::class) {
+    println("Configuring MyTask")
+
+    dependsOn("build")
+}
+
+class MyTask : AbstractTask() {
+    override fun execute() {
+        println("Running MyTask")
+    }
+}

@@ -13,7 +13,7 @@ class ZipTask : AbstractTask() {
 
     private val discardRange = root.absolutePath.substring(0, root.absolutePath.length - this@ZipTask.root.name.length).length
 
-    override fun run() {
+    override fun execute() {
         println("Zipping...")
 
         compress()

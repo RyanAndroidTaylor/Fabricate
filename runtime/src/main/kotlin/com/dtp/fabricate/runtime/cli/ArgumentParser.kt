@@ -51,6 +51,10 @@ object ArgumentParser {
 
                     i++
                 }
+
+                else -> {
+                    finalArguments.add(Argument.Custom(argument))
+                }
             }
 
             i++

@@ -7,4 +7,6 @@ sealed interface Argument {
     data object Build : Argument
     data object Info : Argument
     data object Zip : Argument
+
+    data class Custom(val taskName: String) : Argument
 }

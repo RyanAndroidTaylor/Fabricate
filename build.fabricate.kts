@@ -14,10 +14,8 @@ tasks.register<MyTask>("MyTask", MyTask::class) {
     println("Configuring MyTask")
 }
 
-tasks.enqueueTask("MyTask")
-
 class MyTask : AbstractTask() {
-    override fun run() {
+    override fun execute() {
         println("Running MyTask")
     }
 }

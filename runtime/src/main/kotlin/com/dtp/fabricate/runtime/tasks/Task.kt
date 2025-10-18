@@ -3,7 +3,7 @@ package com.dtp.fabricate.runtime.tasks
 interface Task {
     val dependencies: List<String>
 
-    fun run()
+    fun execute()
 
     fun dependsOn(vararg taskNames: String)
 }
