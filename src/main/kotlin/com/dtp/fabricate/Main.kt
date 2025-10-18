@@ -2,7 +2,7 @@ package com.dtp.fabricate
 
 import com.dtp.fabricate.runtime.cli.ArgumentError
 import com.dtp.fabricate.runtime.cli.ArgumentParser
-import com.dtp.fabricate.runtime.daemon.Daemon
+import com.dtp.fabricate.runtime.daemon.SimpleDaemon
 import com.dtp.fabricate.runtime.deps.SyncTask
 import com.dtp.fabricate.runtime.either
 import com.dtp.fabricate.runtime.models.Project
@@ -21,38 +21,32 @@ import kotlin.script.experimental.jvmhost.createJvmCompilationConfigurationFromT
 fun main(vararg args: String) {
     println("Fabricate started with args ${args.joinToString()}")
 
+    // We want to register and configure all defaults tasks before running the script.
+    // This way the script can override the default configuration.
+    Project.tasks.registerDefaultTasks()
+
+    val buildScript = File("./build.fabricate.kts")
+
+    val res = evalFile(buildScript)
+
+    res.reports.forEach {
+        if (it.severity > ScriptDiagnostic.Severity.DEBUG) {
+            println("\u001B[31mError: ${it.message}" + if (it.exception == null) "" else ": ${it.exception}" + "\u001B[0m")
+        }
+    }
+
     ArgumentParser.parse(args.asList()).either(
-        onValue = { arguments ->
-            // We want to register and configure all defaults tasks before running the script.
-            // This way the script can override the default configuration.
-            Project.tasks.registerDefaultTasks()
-
-            val buildScript = File("./build.fabricate.kts")
-
-            val res = evalFile(buildScript)
-
-            res.reports.forEach {
-                if (it.severity > ScriptDiagnostic.Severity.DEBUG) {
-                    println("\u001B[31mError: ${it.message}" + if (it.exception == null) "" else ": ${it.exception}" + "\u001B[0m")
-                }
-            }
-
-            val taskName = args.firstOrNull()
-
-            if (taskName != null) {
-                Daemon().runTask(
-                    taskName,
-                    Project.tasks
-                )
+        onValue = { result ->
+            if (result.tasks.isNotEmpty()) {
+                //TODO I'm thinking the options should be passed to the daemon but not 100% on that yet
+                SimpleDaemon().runTasks(result.tasks, Project.tasks)
             }
         },
         onError = {
             when (it) {
-                ArgumentError.ConflictingArguments ->
-                    println("FAILED...\n Founding conflicting arguments.")
-
-                is ArgumentError.MissingArgument ->
-                    println("FAILED...\n${it.message}")
+                is ArgumentError.MissingArgument -> println("FAILED...\n${it.message}")
+                is ArgumentError.UnknownOption -> println("FAILED...\n${it.message}")
+                is ArgumentError.UnknownTask -> println("FAILED...\n${it.message}")
             }
         }
     )

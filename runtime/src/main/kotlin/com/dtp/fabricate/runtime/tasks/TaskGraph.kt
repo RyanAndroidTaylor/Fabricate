@@ -3,9 +3,9 @@ package com.dtp.fabricate.runtime.tasks
 import com.dtp.fabricate.runtime.models.TaskContainer
 
 class TaskGraph(val taskContainer: TaskContainer) {
-    fun buildGraph(rootTask: String): List<String> {
+    fun buildGraph(rootTasks: List<String>): List<String> {
         val graph = mutableListOf<MutableSet<String>>(mutableSetOf())
-        val layers = mutableListOf(mutableListOf(rootTask))
+        val layers = mutableListOf(rootTasks.toMutableList())
 
         var layer = 0
 
