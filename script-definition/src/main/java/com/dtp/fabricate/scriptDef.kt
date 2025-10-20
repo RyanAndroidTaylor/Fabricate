@@ -1,25 +1,28 @@
 package com.dtp.fabricate
 
+import com.dtp.fabricate.runtime.models.Project
+import com.dtp.fabricate.runtime.models.Settings
 import kotlin.script.experimental.annotations.KotlinScript
-import kotlin.script.experimental.api.ScriptCompilationConfiguration
-import kotlin.script.experimental.api.defaultImports
+import kotlin.script.experimental.api.*
 import kotlin.script.experimental.jvm.dependenciesFromClassContext
 import kotlin.script.experimental.jvm.jvm
 
 @KotlinScript(
     fileExtension = "fabricate.kts",
-    compilationConfiguration = Config::class
+    compilationConfiguration = Config::class,
 )
-abstract class Fabricate
+abstract class Fabricate()
 
 object Config : ScriptCompilationConfiguration(
     body = {
+        implicitReceivers(Project::class, Settings::class)
+
         defaultImports(
             "com.dtp.fabricate.runtime.models.Project.*",
             "com.dtp.fabricate.runtime.tasks.Task",
             "com.dtp.fabricate.runtime.tasks.AbstractTask",
             "com.dtp.fabricate.runtime.tasks.JarTask.*",
-            "com.dtp.fabricate.runtime.models.TaskContainer.*"
+            "com.dtp.fabricate.runtime.models.TaskContainer.*",
         )
 
         jvm {

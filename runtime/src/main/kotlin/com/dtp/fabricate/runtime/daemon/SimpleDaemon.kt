@@ -1,6 +1,7 @@
 package com.dtp.fabricate.runtime.daemon
 
-import com.dtp.fabricate.runtime.models.TaskContainer
+import com.dtp.fabricate.runtime.cli.CliCommand
+import com.dtp.fabricate.runtime.models.Settings
 import com.dtp.fabricate.runtime.tasks.Task
 import com.dtp.fabricate.runtime.tasks.TaskGraph
 
@@ -9,12 +10,18 @@ import com.dtp.fabricate.runtime.tasks.TaskGraph
  * could be converted in the future
  */
 class SimpleDaemon : Daemon {
-    override fun runTasks(
-        taskNames: List<String>,
-        taskContainer: TaskContainer
+    override fun executeCommands(
+        commands: List<CliCommand>,
+        settings: Settings,
     ) {
-        TaskGraph(taskContainer).buildGraph(taskNames).forEach { taskName ->
-            taskContainer.named<Task>(taskName).task.execute()
+        commands.forEach { (projectName, command) ->
+            val project = settings.project(projectName)
+
+            println("Running command in ${project.name}")
+
+            TaskGraph(project).buildGraph(command).forEach { taskName ->
+                project.tasks.named<Task>(taskName).task.execute()
+            }
         }
     }
 }

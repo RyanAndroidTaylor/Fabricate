@@ -1,12 +1,13 @@
 package com.dtp.fabricate.runtime.models
 
+import com.dtp.fabricate.runtime.TaskCreator
 import com.dtp.fabricate.runtime.tasks.JarTask
 import com.dtp.fabricate.runtime.tasks.LazyTaskProvider
 import com.dtp.fabricate.runtime.tasks.Task
 import com.dtp.fabricate.runtime.tasks.TaskProvider
 import kotlin.reflect.KClass
 
-class TaskContainer {
+class TaskContainer(project: Project) {
 
     /**
      * List containing all Registered task.
@@ -15,6 +16,7 @@ class TaskContainer {
      */
     private val taskRegistry: MutableMap<String, TaskProvider<*>> = mutableMapOf()
 
+    private val taskCreator = TaskCreator(project)
 
     @Suppress("UNCHECKED_CAST")
     val jar: JarTask
@@ -47,7 +49,7 @@ class TaskContainer {
     fun <T : Task> register(taskName: String, taskType: KClass<T>, configurationAction: T.() -> Unit) {
         if (taskRegistry.contains(taskName)) throw IllegalArgumentException("Duplicate Tasks with name: $taskName")
 
-        taskRegistry[taskName] = LazyTaskProvider(taskName, taskType, configurationAction)
+        taskRegistry[taskName] = LazyTaskProvider(taskName, taskType, taskCreator,configurationAction)
     }
 
     /**
@@ -56,7 +58,7 @@ class TaskContainer {
     fun <T : Task> register(taskName: String, taskType: KClass<T>) {
         if (taskRegistry.contains(taskName)) throw IllegalArgumentException("Duplicate Tasks with name: $taskName")
 
-        taskRegistry[taskName] = LazyTaskProvider(taskName, taskType)
+        taskRegistry[taskName] = LazyTaskProvider(taskName, taskType, taskCreator)
     }
 
     @Suppress("UNCHECKED_CAST")

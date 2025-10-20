@@ -1,11 +1,11 @@
 package com.dtp.fabricate.runtime.tasks
 
-import com.dtp.fabricate.runtime.models.TaskContainer
+import com.dtp.fabricate.runtime.models.Project
 
-class TaskGraph(val taskContainer: TaskContainer) {
-    fun buildGraph(rootTasks: List<String>): List<String> {
+class TaskGraph(val project: Project) {
+    fun buildGraph(rootTask: String): List<String> {
         val graph = mutableListOf<MutableSet<String>>(mutableSetOf())
-        val layers = mutableListOf(rootTasks.toMutableList())
+        val layers = mutableListOf(listOf(rootTask))
 
         var layer = 0
 
@@ -15,7 +15,7 @@ class TaskGraph(val taskContainer: TaskContainer) {
 
             current.forEach { taskName ->
                 // This will trigger configuration of task if this is the fist time it is accessed
-                val task = taskContainer.named<Task>(taskName).task
+                val task = project.tasks.named<Task>(taskName).task
 
                 graph[layer].add(taskName)
 

@@ -1,6 +1,5 @@
 package com.dtp.fabricate.runtime.deps
 
-import com.dtp.fabricate.runtime.models.Project
 import com.dtp.fabricate.runtime.network.Network
 import com.dtp.fabricate.runtime.tasks.AbstractTask
 import java.io.File
@@ -13,7 +12,7 @@ class SyncTask : AbstractTask() {
     override fun execute() {
         println("Resolving dependencies...")
 
-        val dependencyScope = Project.dependencyScope
+        val dependencyScope = project.dependencyScope
         val dependencies = dependencyScope?.dependencies ?: let {
             print("Build script does not have a dependencies block")
 

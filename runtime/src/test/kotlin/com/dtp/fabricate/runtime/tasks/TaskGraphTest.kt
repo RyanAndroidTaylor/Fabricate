@@ -1,6 +1,8 @@
 package com.dtp.fabricate.runtime.tasks
 
+import com.dtp.fabricate.runtime.models.Project
 import com.dtp.fabricate.runtime.models.TaskContainer
+import java.io.File
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -13,22 +15,26 @@ class TaskGraphTest {
 
     @Test
     fun `single task no dependencies returns only root`() {
-        val container = TaskContainer()
-        container.register("root", SimpleTask::class)
+        val project = Project("test", File(""))
 
-        val graph = TaskGraph(container).buildGraph("root")
+        project.tasks.register("root", SimpleTask::class)
+
+        val graph = TaskGraph(project).buildGraph("root")
 
         assertEquals(listOf("root"), graph)
     }
 
     @Test
     fun `linear chain dependencies before root`() {
-        val container = TaskContainer()
-        container.register("c", SimpleTask::class)
-        container.register("b", SimpleTask::class) { dependsOn("c") }
-        container.register("a", SimpleTask::class) { dependsOn("b") }
+        val project = Project("test", File(""))
 
-        val order = TaskGraph(container).buildGraph("a")
+        with(project.tasks) {
+            register("c", SimpleTask::class)
+            register("b", SimpleTask::class) { dependsOn("c") }
+            register("a", SimpleTask::class) { dependsOn("b") }
+        }
+
+        val order = TaskGraph(project).buildGraph("a")
 
         // Expect deepest dependency first, then up to root
         assertEquals(listOf("c", "b", "a"), order)
@@ -36,13 +42,16 @@ class TaskGraphTest {
 
     @Test
     fun `diamond graph shared dependency is deduplicated and first`() {
-        val container = TaskContainer()
-        container.register("d", SimpleTask::class)
-        container.register("b", SimpleTask::class) { dependsOn("d") }
-        container.register("c", SimpleTask::class) { dependsOn("d") }
-        container.register("a", SimpleTask::class) { dependsOn("b", "c") }
+        val project = Project("test", File(""))
 
-        val order = TaskGraph(container).buildGraph("a")
+        with (project.tasks) {
+            register("d", SimpleTask::class)
+            register("b", SimpleTask::class) { dependsOn("d") }
+            register("c", SimpleTask::class) { dependsOn("d") }
+            register("a", SimpleTask::class) { dependsOn("b", "c") }
+        }
+
+        val order = TaskGraph(project).buildGraph("a")
 
         // d must execute before b and c; a last. d should only appear once
         assertEquals("d", order.first(), "Shared dependency should be first")
@@ -54,11 +63,14 @@ class TaskGraphTest {
 
     @Test
     fun `duplicate dependencies deduplicated in result`() {
-        val container = TaskContainer()
-        container.register("x", SimpleTask::class)
-        container.register("a", SimpleTask::class) { dependsOn("x", "x") }
+        val project = Project("test", File(""))
 
-        val order = TaskGraph(container).buildGraph("a")
+        with (project.tasks) {
+            register("x", SimpleTask::class)
+            register("a", SimpleTask::class) { dependsOn("x", "x") }
+        }
+
+        val order = TaskGraph(project).buildGraph("a")
 
         // Even if declared twice, x should only be scheduled once
         assertEquals(listOf("x", "a"), order)
@@ -66,20 +78,24 @@ class TaskGraphTest {
 
     @Test
     fun `missing root task throws`() {
-        val container = TaskContainer()
+        val project = Project("test", File(""))
+
         // Do not register root
         assertFailsWith<NullPointerException> {
-            TaskGraph(container).buildGraph("missing")
+            TaskGraph(project).buildGraph("missing")
         }
     }
 
     @Test
     fun `missing dependency throws`() {
-        val container = TaskContainer()
-        container.register("a", SimpleTask::class) { dependsOn("notRegistered") }
+        val project = Project("test", File(""))
+
+        with (project.tasks) {
+            register("a", SimpleTask::class) { dependsOn("notRegistered") }
+        }
 
         assertFailsWith<NullPointerException> {
-            TaskGraph(container).buildGraph("a")
+            TaskGraph(project).buildGraph("a")
         }
     }
 }

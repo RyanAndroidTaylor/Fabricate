@@ -1,16 +1,15 @@
 package com.dtp.fabricate.runtime.models
 
-object Project {
-    lateinit var name: String
-    lateinit var projectPackage: String
+import java.io.File
 
-    val packageAsDir: String
-        get() = projectPackage.replace('.', '/')
+class Project(
+    val name: String,
+    val projectDir: File,
+) {
+    private val taskContainer: TaskContainer = TaskContainer(this)
 
     var dependencyScope: DependencyScope? = null
         private set
-
-    private val taskContainer = TaskContainer()
 
     val tasks: TaskContainer
         get() = taskContainer

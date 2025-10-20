@@ -1,6 +1,5 @@
 package com.dtp.fabricate.runtime.tasks
 
-import com.dtp.fabricate.runtime.models.Project
 import java.io.File
 
 class RunTask : AbstractTask() {
@@ -9,7 +8,7 @@ class RunTask : AbstractTask() {
         var runnable = getProjectRunnable()
 
         if (runnable == null) {
-            println("Failed to find runnable for ${Project.name}")
+            println("Failed to find runnable for ${project.name}")
 
             return
         }

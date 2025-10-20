@@ -1,7 +1,6 @@
 package com.dtp.fabricate.runtime.cli
 
 import com.dtp.fabricate.runtime.Either
-import com.dtp.fabricate.runtime.models.Project
 
 /**
  * Tasks: Start with the module (:module:MyTask) or if no modules is specified (MyTask) it is
@@ -10,10 +9,9 @@ import com.dtp.fabricate.runtime.models.Project
  * Options: Start with a double hyphen (--option) and can come before or after a task (--option1 :module:MyTask --option2)
  */
 object ArgumentParser {
-
     fun parse(args: List<String>): Either<ParseResult, ArgumentError> {
         val options = mutableListOf<Option>()
-        val tasks = mutableListOf<String>()
+        val commands = mutableListOf<CliCommand>()
 
         var i = 0
 
@@ -27,18 +25,26 @@ object ArgumentParser {
                         return Either.Error(ArgumentError.UnknownOption("Unknown option $argument"))
                 }
             } else {
-                if (Project.tasks.hasTask(argument)) {
-                    tasks.add(argument)
+                if (argument.contains(':')) {
+                    val pair = argument.split(':')
+
+                    if (pair.size != 2) {
+                        return Either.Error(ArgumentError.MalformedCommand("MalformedCommand: Currently supported formats \"command\" | \"module:command\" but found $argument"))
+                    }
+
+                    commands.add(CliCommand(pair[0], pair[1]))
                 } else {
-                    return Either.Error(ArgumentError.UnknownTask("Unknown Task $argument"))
+                    commands.add(CliCommand(null, argument))
                 }
             }
 
             i++
         }
 
-        return Either.Value(ParseResult(tasks, options))
+        return Either.Value(ParseResult(commands, options))
     }
 }
 
-data class ParseResult(val tasks: List<String>, val options: List<Option>)
+data class CliCommand(val project: String?, val command: String)
+
+data class ParseResult(val commands: List<CliCommand>, val options: List<Option>)

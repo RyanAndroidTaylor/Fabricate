@@ -1,10 +1,11 @@
 package com.dtp.fabricate.runtime.daemon
 
-import com.dtp.fabricate.runtime.models.TaskContainer
+import com.dtp.fabricate.runtime.cli.CliCommand
+import com.dtp.fabricate.runtime.models.Settings
 
 interface Daemon {
-    fun runTasks(
-        taskNames: List<String>,
-        taskContainer: TaskContainer
+    fun executeCommands(
+        commands: List<CliCommand>,
+        settings: Settings
     )
 }

@@ -1,13 +1,14 @@
 package com.dtp.fabricate.runtime.tasks
 
 import com.dtp.fabricate.runtime.Action
-import com.dtp.fabricate.runtime.ObjectCreator
+import com.dtp.fabricate.runtime.TaskCreator
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty0
 
 class LazyTaskProvider<T : Task>(
     override val name: String,
     val taskType: KClass<T>,
+    val taskCreator: TaskCreator,
     configAction: Action<T>? = null
 ) : TaskProvider<T> {
 
@@ -18,7 +19,7 @@ class LazyTaskProvider<T : Task>(
     }
 
     override val task: T by lazy {
-        ObjectCreator.create(taskType).also { item ->
+        taskCreator.create(taskType).also { item ->
             configActions.forEach { it.execute(item) }
         }
     }

@@ -2,17 +2,16 @@ package com.dtp.fabricate.runtime.tasks
 
 import com.dtp.fabricate.runtime.BUILD_CLASSES_DIR
 import com.dtp.fabricate.runtime.KOTLIN_SRC_DIR
-import com.dtp.fabricate.runtime.models.Project
 import java.io.File
 
 class BuildTask : AbstractTask() {
     override fun execute() {
-        println("Building ${Project.name}")
+        println("Building ${project.name}")
 
         val commandBuilder = StringBuilder()
 
         with (commandBuilder) {
-            append("kotlinc -d $BUILD_CLASSES_DIR")
+            append("kotlinc -d ${project.projectDir.path}/$BUILD_CLASSES_DIR")
 
             collectSrcFiles().forEach {
                 append(" $it")
@@ -44,7 +43,7 @@ class BuildTask : AbstractTask() {
     private fun collectSrcFiles(): List<String> {
         val srcFiles = mutableListOf<String>()
 
-        val root = File(KOTLIN_SRC_DIR)
+        val root = File("${project.projectDir.path}/$KOTLIN_SRC_DIR")
 
         val fileIterator = root.walkTopDown().iterator()
 

@@ -1,14 +1,12 @@
 package com.dtp.fabricate.runtime.tasks
 
-import com.dtp.fabricate.runtime.models.Project
-
 //TODO Need to pull dependencies from cache. Which means this task will depend on SyncTask to make sure dependencies are
 // downloaded.
 class JarTask : AbstractTask() {
     var mainClass: String? = null
 
     override fun execute() {
-        println("Generating Jar for ${Project.name}...")
+        println("Generating Jar for ${project.name}...")
 
         val commandBuilder = StringBuilder()
 
