@@ -16,6 +16,12 @@ class BuildTask : AbstractTask() {
             collectSrcFiles().forEach {
                 append(" $it")
             }
+
+            // This controls the name of the META-INF/*.kotlin_module
+            // This file hold all the information about top level members which helps compilation times.
+            // We need to make sure this is uniquely named for each module when building a multi module project
+            // See: https://blog.jetbrains.com/kotlin/2015/06/improving-java-interop-top-level-functions-and-properties/
+            append(" -module-name ${project.name}")
         }
 
         println("Compiling with: $commandBuilder")
@@ -27,8 +33,10 @@ class BuildTask : AbstractTask() {
 
         processBuilder.waitFor()
 
-        val output = processBuilder.inputStream.bufferedReader().readText()
-        val error = processBuilder.errorStream.bufferedReader().readText()
+        val outputReader = processBuilder.inputStream.bufferedReader()
+        val output = outputReader.readText()
+        val errorReader = processBuilder.errorStream.bufferedReader()
+        val error = errorReader.readText()
 
         if (output.isNotBlank()) {
             println(output)
@@ -37,6 +45,9 @@ class BuildTask : AbstractTask() {
             println(error)
         }
 
+        outputReader.close()
+        errorReader.close()
+
         println("Build Complete!")
     }
 
@@ -44,6 +55,10 @@ class BuildTask : AbstractTask() {
         val srcFiles = mutableListOf<String>()
 
         val root = File("${project.projectDir.path}/$KOTLIN_SRC_DIR")
+
+        if (!root.exists()) {
+            throw IllegalStateException("No src dir found at ${root.absoluteFile}")
+        }
 
         val fileIterator = root.walkTopDown().iterator()
 
