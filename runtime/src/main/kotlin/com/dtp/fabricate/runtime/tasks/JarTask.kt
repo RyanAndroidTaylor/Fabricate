@@ -1,35 +1,80 @@
 package com.dtp.fabricate.runtime.tasks
 
-//TODO Need to pull dependencies from cache. Which means this task will depend on SyncTask to make sure dependencies are
-// downloaded.
+import com.dtp.fabricate.runtime.BUILD_CLASSES_DIR
+import com.dtp.fabricate.runtime.BUILD_LIBS_DIR
+import java.io.File
+import java.util.jar.Attributes
+import java.util.jar.JarOutputStream
+import java.util.jar.Manifest
+import java.util.zip.CRC32
+import java.util.zip.ZipEntry
+
 class JarTask : AbstractTask() {
-    var mainClass: String? = null
+    lateinit var mainClass: String
 
     override fun execute() {
         println("Generating Jar for ${project.name}...")
 
-        val commandBuilder = StringBuilder()
+        val libsDir = File("${project.projectDir.path}/$BUILD_LIBS_DIR")
 
-//        TODO("This Task will depend on BuildTask and use the build folder outputted by BuildTask to generate a Jar")
+        if (!libsDir.exists()) {
+            libsDir.mkdirs()
+        }
 
-//        val processBuilder = ProcessBuilder("/bin/bash", "-c", commandBuilder.toString())
-//            .redirectOutput(ProcessBuilder.Redirect.PIPE)
-//            .redirectError(ProcessBuilder.Redirect.PIPE)
-//            .start()
-//
-//        processBuilder.waitFor()
-//
-//        val output = processBuilder.inputStream.bufferedReader().readText()
-//        val error = processBuilder.errorStream.bufferedReader().readText()
-//
-//        if (output.isNotBlank()) {
-//            println(output)
-//        }
-//        if (error.isNotBlank()) {
-//            println(error)
-//        }
-//
-//        println("Build Complete!")
+        val inputFile = File("${project.projectDir.path}/$BUILD_CLASSES_DIR")
+        val outputFile = File(libsDir,"/${project.name}.jar")
+        //TODO Having some real issues with paths between the jar and the build/classes
+        val classPathStartIndex = "${project.projectDir.path}/$BUILD_CLASSES_DIR/".length
+
+        if (!outputFile.exists()) {
+            outputFile.createNewFile()
+        }
+
+        val fileOutputStream = outputFile.outputStream()
+
+        val manifest = Manifest().apply {
+            mainAttributes[Attributes.Name("Manifest-Version")] = "1.0"
+            //TODO Like the above TODO there seems to be some issues with paths
+            mainAttributes[Attributes.Name("Main-Class")] = mainClass
+        }
+
+        val jarOutputStream = JarOutputStream(fileOutputStream, manifest)
+
+        val dirs = mutableListOf(inputFile)
+
+        while (dirs.isNotEmpty()) {
+            val current = dirs.removeAt(dirs.lastIndex)
+
+            current.listFiles()?.forEach { file ->
+                if (file.isDirectory) {
+                    if (file.name != "META-INF") {
+                        dirs.add(file)
+                    }
+                } else {
+                    addFile(file, classPathStartIndex, jarOutputStream)
+                }
+            }
+        }
+
+        jarOutputStream.close()
     }
 
+    private fun addFile(file: File, pathStartIndex: Int, jar: JarOutputStream) {
+        val localQualifiedName = file.path.substring(pathStartIndex)
+
+        val bytes = file.readBytes()
+
+        val entry = ZipEntry(localQualifiedName).apply {
+            val crc32 = CRC32()
+            crc32.update(bytes)
+
+            crc = crc32.value
+            method = ZipEntry.STORED
+            size = bytes.size.toLong()
+        }
+
+        jar.putNextEntry(entry)
+        jar.write(bytes)
+        jar.closeEntry()
+    }
 }

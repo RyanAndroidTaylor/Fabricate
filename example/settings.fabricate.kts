@@ -1,3 +1,4 @@
 projectName = "Example"
 
-include("sub")
+//TODO Need to support sub modules in jar task
+//include("sub")

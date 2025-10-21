@@ -51,6 +51,11 @@ fun main(vararg args: String) {
 }
 
 private fun evalProject(project: Project, settings: Settings) {
+    // We want to register and configure all defaults tasks before running the script.
+    // This way the script can override the default configuration.
+    //TODO Should we be registering the default tasks for all projects?
+    project.tasks.registerDefaultTasks()
+
     val buildScriptResult = evalBuildFile(
         File(project.projectDir, "/build.fabricate.kts"),
         project,
@@ -62,11 +67,6 @@ private fun evalProject(project: Project, settings: Settings) {
             println("\u001B[31mError: ${it.message}" + if (it.exception == null) "" else ": ${it.exception}" + "\u001B[0m")
         }
     }
-
-    // We want to register and configure all defaults tasks before running the script.
-    // This way the script can override the default configuration.
-    //TODO Should we be registering the default tasks for all projects?
-    project.tasks.registerDefaultTasks()
 }
 
 private fun TaskContainer.registerDefaultTasks() {
