@@ -18,7 +18,7 @@ import kotlin.script.experimental.jvmhost.BasicJvmScriptingHost
 import kotlin.script.experimental.jvmhost.createJvmCompilationConfigurationFromTemplate
 
 fun main(vararg args: String) {
-    println("Fabricate started with args ${args.joinToString()}")
+    println("Fabricate started with args (${args.joinToString()})")
 
     val settings = Settings()
     val settingsScriptResult = evalSettingsFile(File("./settings.fabricate.kts"), settings)
@@ -30,13 +30,13 @@ fun main(vararg args: String) {
     }
 
     evalProject(settings.rootProject, settings)
-    settings.subProjects.values.forEach { evalProject(it, settings) }
+    settings.rootProject.children.forEach { evalProject(it, settings) }
 
     ArgumentParser.parse(args.asList()).either(
         onValue = { result ->
             if (result.commands.isNotEmpty()) {
                 //TODO I'm thinking the options should be passed to the daemon but not 100% on that yet
-                SimpleDaemon().executeCommands(result.commands, settings)
+                SimpleDaemon().executeCommands(result.commands, settings.rootProject)
             }
         },
         onError = {
@@ -53,7 +53,6 @@ fun main(vararg args: String) {
 private fun evalProject(project: Project, settings: Settings) {
     // We want to register and configure all defaults tasks before running the script.
     // This way the script can override the default configuration.
-    //TODO Should we be registering the default tasks for all projects?
     project.tasks.registerDefaultTasks()
 
     val buildScriptResult = evalBuildFile(
@@ -67,26 +66,6 @@ private fun evalProject(project: Project, settings: Settings) {
             println("\u001B[31mError: ${it.message}" + if (it.exception == null) "" else ": ${it.exception}" + "\u001B[0m")
         }
     }
-}
-
-private fun TaskContainer.registerDefaultTasks() {
-    register("info", InfoTask::class)
-
-    register("sync", SyncTask::class)
-
-    register("build", BuildTask::class) {
-        dependsOn("sync")
-    }
-
-    register("run", RunTask::class) {
-        dependsOn("build")
-    }
-
-    register("jar", JarTask::class) {
-        dependsOn("build")
-    }
-
-    register("zip", ZipTask::class)
 }
 
 private fun evalBuildFile(
@@ -132,4 +111,24 @@ private fun evalSettingsFile(scriptFile: File, settings: Settings): ResultWithDi
         compilationConfiguration,
         scriptEvaluationContinuation,
     )
+}
+
+private fun TaskContainer.registerDefaultTasks() {
+    register("info", InfoTask::class)
+
+    register("sync", SyncTask::class)
+
+    register("build", BuildTask::class) {
+        dependsOn("sync")
+    }
+
+    register("run", RunTask::class) {
+        dependsOn("build")
+    }
+
+    register("jar", JarTask::class) {
+        dependsOn("build")
+    }
+
+    register("zip", ZipTask::class)
 }

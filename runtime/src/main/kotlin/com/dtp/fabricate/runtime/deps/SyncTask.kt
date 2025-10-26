@@ -1,5 +1,6 @@
 package com.dtp.fabricate.runtime.deps
 
+import com.dtp.fabricate.runtime.models.Dependency
 import com.dtp.fabricate.runtime.network.Network
 import com.dtp.fabricate.runtime.tasks.AbstractTask
 import java.io.File
@@ -8,44 +9,42 @@ import java.net.URI
 class SyncTask : AbstractTask() {
 
     val network = Network()
+    val cache = DependencyCache(getDependencyCacheDir())
 
     override fun execute() {
         println("Resolving dependencies...")
 
-        val dependencyScope = project.dependencyScope
-        val dependencies = dependencyScope?.dependencies ?: let {
-            print("Build script does not have a dependencies block")
-
-            return
-        }
-
-        val cache = DependencyCache(getDependencyCacheDir())
-
-        dependencies.forEach {
-            val location = buildUrl(it)
-
-            val dependency = cache.find(location.cacheKey)
-
-            if (dependency != null) {
-                println("Dependency (UP TO DATE): ${location.cacheKey}")
-            } else {
-                println("Downloading: ${getDependencyCacheDir()}/${location.cacheKey}/${location.fileName}")
-                val bytes = network.download(URI(location.remoteUrl).toURL())
-
-                val directory = File("${getDependencyCacheDir()}/${location.cacheKey}/")
-                val file = File(directory, location.fileName)
-
-                if (!directory.exists()) {
-                    directory.mkdirs()
-                }
-
-                if (!file.exists()) {
-                    file.createNewFile()
-                }
-
-                file.writeBytes(bytes)
-                println("Complete")
+        project.forEachProject {
+            it.dependencyScope?.dependencies?.filterIsInstance<Dependency.Remote>()?.forEach { dependency ->
+                downloadDependency(dependency)
             }
+        }
+    }
+
+    private fun downloadDependency(dependency: Dependency.Remote) {
+        val location = buildUrl(dependency.value)
+
+        val dependency = cache.find(location.cacheKey)
+
+        if (dependency != null) {
+            println("(UP TO DATE): ${location.cacheKey}")
+        } else {
+            println("Downloading: ${getDependencyCacheDir()}/${location.cacheKey}/${location.fileName}")
+            val bytes = network.download(URI(location.remoteUrl).toURL())
+
+            val directory = File("${getDependencyCacheDir()}/${location.cacheKey}/")
+            val file = File(directory, location.fileName)
+
+            if (!directory.exists()) {
+                directory.mkdirs()
+            }
+
+            if (!file.exists()) {
+                file.createNewFile()
+            }
+
+            file.writeBytes(bytes)
+            println("Complete")
         }
     }
 

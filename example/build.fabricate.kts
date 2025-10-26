@@ -1,9 +1,17 @@
+import java.io.File
+
 dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.10.2")
 }
 
 tasks.jar {
     mainClass = "Example.kt"
+}
+
+tasks.named<ZipTask>("zip") {
+    println("Configure Zip...........................")
+
+    root = File("./src")
 }
 
 tasks.register("MyTask", MyTask::class) {

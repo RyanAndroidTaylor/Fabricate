@@ -1,7 +1,6 @@
-package com.dtp.fabricate.runtime.tasks
+package com.dtp.fabricate.runtime.models
 
-import com.dtp.fabricate.runtime.models.Project
-import com.dtp.fabricate.runtime.models.TaskContainer
+import com.dtp.fabricate.runtime.tasks.AbstractTask
 import java.io.File
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -11,7 +10,7 @@ class SimpleTask : AbstractTask() {
     override fun execute() { /* no-op for tests */ }
 }
 
-class TaskGraphTest {
+class ProjectTests {
 
     @Test
     fun `single task no dependencies returns only root`() {
@@ -19,7 +18,7 @@ class TaskGraphTest {
 
         project.tasks.register("root", SimpleTask::class)
 
-        val graph = TaskGraph(project).buildGraph("root")
+        val graph = project.buildGraph("root")
 
         assertEquals(listOf("root"), graph)
     }
@@ -34,7 +33,7 @@ class TaskGraphTest {
             register("a", SimpleTask::class) { dependsOn("b") }
         }
 
-        val order = TaskGraph(project).buildGraph("a")
+        val order = project.buildGraph("a")
 
         // Expect deepest dependency first, then up to root
         assertEquals(listOf("c", "b", "a"), order)
@@ -51,7 +50,7 @@ class TaskGraphTest {
             register("a", SimpleTask::class) { dependsOn("b", "c") }
         }
 
-        val order = TaskGraph(project).buildGraph("a")
+        val order = project.buildGraph("a")
 
         // d must execute before b and c; a last. d should only appear once
         assertEquals("d", order.first(), "Shared dependency should be first")
@@ -70,7 +69,7 @@ class TaskGraphTest {
             register("a", SimpleTask::class) { dependsOn("x", "x") }
         }
 
-        val order = TaskGraph(project).buildGraph("a")
+        val order = project.buildGraph("a")
 
         // Even if declared twice, x should only be scheduled once
         assertEquals(listOf("x", "a"), order)
@@ -82,7 +81,7 @@ class TaskGraphTest {
 
         // Do not register root
         assertFailsWith<NullPointerException> {
-            TaskGraph(project).buildGraph("missing")
+            project.buildGraph("missing")
         }
     }
 
@@ -95,7 +94,7 @@ class TaskGraphTest {
         }
 
         assertFailsWith<NullPointerException> {
-            TaskGraph(project).buildGraph("a")
+            project.buildGraph("a")
         }
     }
 }

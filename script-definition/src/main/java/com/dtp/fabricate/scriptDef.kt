@@ -19,8 +19,7 @@ object Config : ScriptCompilationConfiguration(
 
         defaultImports(
             "com.dtp.fabricate.runtime.models.Project.*",
-            "com.dtp.fabricate.runtime.tasks.Task",
-            "com.dtp.fabricate.runtime.tasks.AbstractTask",
+            "com.dtp.fabricate.runtime.tasks.*",
             "com.dtp.fabricate.runtime.tasks.JarTask.*",
             "com.dtp.fabricate.runtime.models.TaskContainer.*",
         )

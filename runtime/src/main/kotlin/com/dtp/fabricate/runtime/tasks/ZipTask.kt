@@ -11,8 +11,6 @@ class ZipTask : AbstractTask() {
 
     lateinit var zipStream: ZipOutputStream
 
-    private val discardRange = root.absolutePath.substring(0, root.absolutePath.length - this@ZipTask.root.name.length).length
-
     override fun execute() {
         println("Zipping...")
 
@@ -57,6 +55,8 @@ class ZipTask : AbstractTask() {
     // As of right now this does not support extra large files. The file content is read, compressed and written
     // in a single pass so extra larges files could run into memory issues
     private fun compressFile(file: File) {
+        val discardRange = root.absolutePath.substring(0, root.absolutePath.length - this@ZipTask.root.name.length).length
+
         val localQualifiedName = file.absolutePath.substring(discardRange)
 
         println("Compressing file: $localQualifiedName")

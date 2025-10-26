@@ -2,15 +2,23 @@ package com.dtp.fabricate.runtime.tasks
 
 import com.dtp.fabricate.runtime.BUILD_CLASSES_DIR
 import com.dtp.fabricate.runtime.KOTLIN_SRC_DIR
+import com.dtp.fabricate.runtime.models.Dependency
+import com.dtp.fabricate.runtime.models.Project
 import java.io.File
 
 class BuildTask : AbstractTask() {
     override fun execute() {
-        println("Building ${project.name}")
+        println("Building...")
 
+        project.forEachProject { buildProject(it) }
+
+        println("Build Complete!")
+    }
+
+    private fun buildProject(project: Project) {
         val commandBuilder = StringBuilder()
 
-        with (commandBuilder) {
+        with(commandBuilder) {
             append("kotlinc -d ${project.projectDir.path}/$BUILD_CLASSES_DIR")
 
             collectSrcFiles().forEach {
@@ -48,7 +56,7 @@ class BuildTask : AbstractTask() {
         outputReader.close()
         errorReader.close()
 
-        println("Build Complete!")
+        println("(BUILT): ${project.name}")
     }
 
     private fun collectSrcFiles(): List<String> {
