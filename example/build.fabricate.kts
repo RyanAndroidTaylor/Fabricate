@@ -5,12 +5,10 @@ dependencies {
 }
 
 tasks.jar {
-    mainClass = "Example.kt"
+    mainClass = "com.dtp.example.Example.kt"
 }
 
 tasks.named<ZipTask>("zip") {
-    println("Configure Zip...........................")
-
     root = File("./src")
 }
 

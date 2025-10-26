@@ -23,8 +23,6 @@ class JarTask : AbstractTask() {
 
         val inputFile = File("${project.projectDir.path}/$BUILD_CLASSES_DIR")
         val outputFile = File(libsDir,"/${project.name}.jar")
-        //TODO Having some real issues with paths between the jar and the build/classes
-        val classPathStartIndex = "${project.projectDir.path}/$BUILD_CLASSES_DIR/".length
 
         if (!outputFile.exists()) {
             outputFile.createNewFile()
@@ -34,8 +32,7 @@ class JarTask : AbstractTask() {
 
         val manifest = Manifest().apply {
             mainAttributes[Attributes.Name("Manifest-Version")] = "1.0"
-            //TODO Like the above TODO there seems to be some issues with paths
-            mainAttributes[Attributes.Name("Main-Class")] = mainClass
+            mainAttributes[Attributes.Name("Main-Class")] = mainClass.replace(".kt", "Kt")
         }
 
         val jarOutputStream = JarOutputStream(fileOutputStream, manifest)
@@ -51,7 +48,8 @@ class JarTask : AbstractTask() {
                         dirs.add(file)
                     }
                 } else {
-                    addFile(file, classPathStartIndex, jarOutputStream)
+                    val relativePath = file.relativeTo(inputFile).path
+                    addFile(file, relativePath, jarOutputStream)
                 }
             }
         }
@@ -59,12 +57,10 @@ class JarTask : AbstractTask() {
         jarOutputStream.close()
     }
 
-    private fun addFile(file: File, pathStartIndex: Int, jar: JarOutputStream) {
-        val localQualifiedName = file.path.substring(pathStartIndex)
-
+    private fun addFile(file: File, relativePath: String, jar: JarOutputStream) {
         val bytes = file.readBytes()
 
-        val entry = ZipEntry(localQualifiedName).apply {
+        val entry = ZipEntry(relativePath).apply {
             val crc32 = CRC32()
             crc32.update(bytes)
 
