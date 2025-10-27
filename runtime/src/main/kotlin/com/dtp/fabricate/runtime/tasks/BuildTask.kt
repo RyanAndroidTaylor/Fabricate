@@ -6,6 +6,13 @@ import com.dtp.fabricate.runtime.models.Dependency
 import com.dtp.fabricate.runtime.models.Project
 import java.io.File
 
+/**
+ * Builds the given project and all of its children. Building generates all the class files for the project as well as
+ * all child projects it depends on. It stores these class files in the "project.projectDir"/build/classes dir. It also
+ * pulls in all the class files from any external dependencies (these should be downloaded and cached during the SyncTask
+ * which this task depends on). Once complete the "project.projectDir"/build/classes dir should contain all the class
+ * files needed to generate a Jar.
+ */
 class BuildTask : AbstractTask() {
     override fun execute() {
         println("Building...")
@@ -21,8 +28,14 @@ class BuildTask : AbstractTask() {
         with(commandBuilder) {
             append("kotlinc -d ${project.projectDir.path}/$BUILD_CLASSES_DIR")
 
-            collectSrcFiles().forEach {
-                append(" $it")
+            // Root project src
+            append(" ${project.projectDir}/$KOTLIN_SRC_DIR")
+
+            // Only build the children this project depends on
+            project.dependencyScope?.dependencies?.filterIsInstance<Dependency.Project>()?.forEach { dependency ->
+                project.children.firstOrNull { it.name == dependency.module }?.let {
+                    append(" ${it.projectDir}/$KOTLIN_SRC_DIR")
+                }
             }
 
             // This controls the name of the META-INF/*.kotlin_module
@@ -30,6 +43,7 @@ class BuildTask : AbstractTask() {
             // We need to make sure this is uniquely named for each module when building a multi module project
             // See: https://blog.jetbrains.com/kotlin/2015/06/improving-java-interop-top-level-functions-and-properties/
             append(" -module-name ${project.name}")
+
         }
 
         println("Compiling with: $commandBuilder")
@@ -57,27 +71,5 @@ class BuildTask : AbstractTask() {
         errorReader.close()
 
         println("(BUILT): ${project.name}")
-    }
-
-    private fun collectSrcFiles(): List<String> {
-        val srcFiles = mutableListOf<String>()
-
-        val root = File("${project.projectDir.path}/$KOTLIN_SRC_DIR")
-
-        if (!root.exists()) {
-            throw IllegalStateException("No src dir found at ${root.absoluteFile}")
-        }
-
-        val fileIterator = root.walkTopDown().iterator()
-
-        while (fileIterator.hasNext()) {
-            val next = fileIterator.next()
-
-            if (next.isFile) {
-                srcFiles.add(next.path)
-            }
-        }
-
-        return srcFiles
     }
 }

@@ -1,6 +1,7 @@
 package com.dtp.example
 
 import com.dtp.example.other.Other
+import com.dtp.sub.SubModuleClass
 //import kotlinx.coroutines.CoroutineScope
 //import kotlinx.coroutines.Dispatchers
 //import kotlinx.coroutines.launch
@@ -13,4 +14,5 @@ fun main() {
 //    }
 
     Other.logOther()
+    SubModuleClass.info()
 }

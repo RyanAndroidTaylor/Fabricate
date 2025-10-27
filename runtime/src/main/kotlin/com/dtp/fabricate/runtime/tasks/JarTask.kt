@@ -2,6 +2,7 @@ package com.dtp.fabricate.runtime.tasks
 
 import com.dtp.fabricate.runtime.BUILD_CLASSES_DIR
 import com.dtp.fabricate.runtime.BUILD_LIBS_DIR
+import com.dtp.fabricate.runtime.models.Project
 import java.io.File
 import java.util.jar.Attributes
 import java.util.jar.JarOutputStream
@@ -9,6 +10,8 @@ import java.util.jar.Manifest
 import java.util.zip.CRC32
 import java.util.zip.ZipEntry
 
+//TODO SubModules are not working. It looks like the class files are being put in the correct spot but for some reason
+// there are compile time errors
 class JarTask : AbstractTask() {
     lateinit var mainClass: String
 
@@ -16,13 +19,11 @@ class JarTask : AbstractTask() {
         println("Generating Jar for ${project.name}...")
 
         val libsDir = File("${project.projectDir.path}/$BUILD_LIBS_DIR")
+        val outputFile = File(libsDir, "/${project.name}.jar")
 
         if (!libsDir.exists()) {
             libsDir.mkdirs()
         }
-
-        val inputFile = File("${project.projectDir.path}/$BUILD_CLASSES_DIR")
-        val outputFile = File(libsDir,"/${project.name}.jar")
 
         if (!outputFile.exists()) {
             outputFile.createNewFile()
@@ -37,6 +38,14 @@ class JarTask : AbstractTask() {
 
         val jarOutputStream = JarOutputStream(fileOutputStream, manifest)
 
+        addProject(project, jarOutputStream)
+
+        jarOutputStream.close()
+    }
+
+    private fun addProject(project: Project, jarOutputStream: JarOutputStream) {
+        val inputFile = File("${project.projectDir.path}/$BUILD_CLASSES_DIR")
+
         val dirs = mutableListOf(inputFile)
 
         while (dirs.isNotEmpty()) {
@@ -44,17 +53,13 @@ class JarTask : AbstractTask() {
 
             current.listFiles()?.forEach { file ->
                 if (file.isDirectory) {
-                    if (file.name != "META-INF") {
-                        dirs.add(file)
-                    }
+                    dirs.add(file)
                 } else {
                     val relativePath = file.relativeTo(inputFile).path
                     addFile(file, relativePath, jarOutputStream)
                 }
             }
         }
-
-        jarOutputStream.close()
     }
 
     private fun addFile(file: File, relativePath: String, jar: JarOutputStream) {

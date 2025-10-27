@@ -2,6 +2,7 @@ import java.io.File
 
 dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.10.2")
+    implementation(project("sub"))
 }
 
 tasks.jar {

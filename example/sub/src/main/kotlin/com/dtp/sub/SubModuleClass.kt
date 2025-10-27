@@ -1,10 +1,7 @@
 package com.dtp.sub
 
-class SubModuleClass(val items: List<String>) {
+object SubModuleClass {
     fun info() {
-        println("Item Info:")
-        items.forEach {
-            println("    $it")
-        }
+        println("SubModule Print")
     }
 }

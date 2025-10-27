@@ -32,6 +32,8 @@ class Project(
 
     /**
      * Loops over the entire project tree starting with this project calling [block]
+     *
+     * TODO Not sure this is right. These projects might depend on each other which means we need to build them in order?
      */
     inline fun forEachProject(block :(Project) -> Unit) {
         val projects = mutableListOf(this)
