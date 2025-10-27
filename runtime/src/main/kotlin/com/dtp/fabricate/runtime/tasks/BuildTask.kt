@@ -2,6 +2,7 @@ package com.dtp.fabricate.runtime.tasks
 
 import com.dtp.fabricate.runtime.BUILD_CLASSES_DIR
 import com.dtp.fabricate.runtime.KOTLIN_SRC_DIR
+import com.dtp.fabricate.runtime.deps.DependencyLocation
 import com.dtp.fabricate.runtime.models.Dependency
 import com.dtp.fabricate.runtime.models.Project
 import java.io.File
@@ -28,11 +29,29 @@ class BuildTask : AbstractTask() {
         with(commandBuilder) {
             append("kotlinc -d ${project.projectDir.path}/$BUILD_CLASSES_DIR")
 
+            val projectDependencies =
+                project.dependencyScope?.dependencies?.filterIsInstance<Dependency.Project>() ?: emptyList()
+            val remoteDependencies =
+                project.dependencyScope?.dependencies?.filterIsInstance<Dependency.Remote>() ?: emptyList()
+
+            if (remoteDependencies.isNotEmpty()) {
+                append(" -classpath ")
+
+                remoteDependencies.forEach { dependency ->
+                    append("${getDependencyCacheDir()}/${buildUrl(dependency.value).cacheKey}:")
+                }
+
+                // Dropping last (:)
+                deleteAt(lastIndex)
+            }
+
             // Root project src
             append(" ${project.projectDir}/$KOTLIN_SRC_DIR")
 
-            // Only build the children this project depends on
-            project.dependencyScope?.dependencies?.filterIsInstance<Dependency.Project>()?.forEach { dependency ->
+            //TODO Instead of including subModules .kt files we can actually use -classpath above to include the
+            // class files from the subModules build. But before we can do this we need to make sure that subModules
+            // that are dependencies are built before the project that depends on them
+            projectDependencies.forEach { dependency ->
                 project.children.firstOrNull { it.name == dependency.module }?.let {
                     append(" ${it.projectDir}/$KOTLIN_SRC_DIR")
                 }
@@ -71,5 +90,29 @@ class BuildTask : AbstractTask() {
         errorReader.close()
 
         println("(BUILT): ${project.name}")
+    }
+
+    private fun getDependencyCacheDir(): File {
+        //TODO Need to figure out how to get to ~/ dir
+        val root = File("/Users/ryantaylor/.fabricate/")
+
+        if (!root.exists()) {
+            root.mkdir()
+        }
+
+        return root
+    }
+
+    private fun buildUrl(dependency: String): DependencyLocation {
+        val segments = dependency.split(":")
+        val path = segments[0].replace('.', '/')
+        val id = segments[1]
+        val version = segments[2]
+
+        return DependencyLocation(
+            fileName = "$version.jar",
+            cacheKey = "$path/$id/$version",
+            remoteUrl = "https://repo1.maven.org/maven2/$path/$id/$version/$id-$version.jar"
+        )
     }
 }

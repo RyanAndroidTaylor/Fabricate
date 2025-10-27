@@ -82,7 +82,7 @@ class SyncTask : AbstractTask() {
     }
 }
 
-private data class DependencyLocation(
+data class DependencyLocation(
     val fileName: String,
     val cacheKey: String,
     val remoteUrl: String
