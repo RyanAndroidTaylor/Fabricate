@@ -2,10 +2,10 @@ package com.dtp.fabricate.runtime.tasks
 
 import com.dtp.fabricate.runtime.BUILD_CLASSES_DIR
 import com.dtp.fabricate.runtime.KOTLIN_SRC_DIR
-import com.dtp.fabricate.runtime.deps.DependencyLocation
+import com.dtp.fabricate.runtime.deps.buildLocation
+import com.dtp.fabricate.runtime.deps.getDependencyCacheDir
 import com.dtp.fabricate.runtime.models.Dependency
 import com.dtp.fabricate.runtime.models.Project
-import java.io.File
 
 /**
  * Builds the given project and all of its children. Building generates all the class files for the project as well as
@@ -38,10 +38,11 @@ class BuildTask : AbstractTask() {
                 append(" -classpath ")
 
                 remoteDependencies.forEach { dependency ->
-                    append("${getDependencyCacheDir()}/${buildUrl(dependency.value).cacheKey}:")
+                    val location = buildLocation(dependency.value)
+
+                    append("${getDependencyCacheDir()}/${location.cacheKey}/${location.fileName}:")
                 }
 
-                // Dropping last (:)
                 deleteAt(lastIndex)
             }
 
@@ -90,29 +91,5 @@ class BuildTask : AbstractTask() {
         errorReader.close()
 
         println("(BUILT): ${project.name}")
-    }
-
-    private fun getDependencyCacheDir(): File {
-        //TODO Need to figure out how to get to ~/ dir
-        val root = File("/Users/ryantaylor/.fabricate/")
-
-        if (!root.exists()) {
-            root.mkdir()
-        }
-
-        return root
-    }
-
-    private fun buildUrl(dependency: String): DependencyLocation {
-        val segments = dependency.split(":")
-        val path = segments[0].replace('.', '/')
-        val id = segments[1]
-        val version = segments[2]
-
-        return DependencyLocation(
-            fileName = "$version.jar",
-            cacheKey = "$path/$id/$version",
-            remoteUrl = "https://repo1.maven.org/maven2/$path/$id/$version/$id-$version.jar"
-        )
     }
 }

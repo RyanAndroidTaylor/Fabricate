@@ -4,7 +4,10 @@ import com.dtp.fabricate.runtime.models.Dependency
 import com.dtp.fabricate.runtime.network.Network
 import com.dtp.fabricate.runtime.tasks.AbstractTask
 import java.io.File
+import java.io.FileInputStream
 import java.net.URI
+import java.util.concurrent.TimeUnit
+import java.util.jar.JarInputStream
 
 class SyncTask : AbstractTask() {
 
@@ -22,11 +25,14 @@ class SyncTask : AbstractTask() {
     }
 
     private fun downloadDependency(dependency: Dependency.Remote) {
-        val location = buildUrl(dependency.value)
+        val location = buildLocation(dependency.value)
 
         val dependency = cache.find(location.cacheKey)
 
         if (dependency != null) {
+            //TODO Temp for testing
+//            extractClassFiles(location)
+
             println("(UP TO DATE): ${location.cacheKey}")
         } else {
             println("Downloading: ${getDependencyCacheDir()}/${location.cacheKey}/${location.fileName}")
@@ -44,46 +50,65 @@ class SyncTask : AbstractTask() {
             }
 
             file.writeBytes(bytes)
+
+            extractClassFiles(location)
+
             println("Complete")
         }
     }
 
-    private fun getDependencyCacheDir(): File {
-        //TODO Need to figure out how to get to ~/ dir
-        val root = File("/Users/ryantaylor/.fabricate/")
+    private fun extractClassFiles(location: DependencyLocation) {
+        println("Extracting Class Files...")
 
-        if (!root.exists()) {
-            root.mkdir()
+        //TODO WIP: Extract deps using JarInputStream instead of unzip command
+//        val fileInputStream = File("${getDependencyCacheDir()}/${location.cacheKey}/${location.fileName}").inputStream()
+//        val fileOutput = File("${getDependencyCacheDir()}/${location.cacheKey}/class-files/")
+//
+//        val jarInputStream = JarInputStream(fileInputStream)
+//
+//        val manifest = jarInputStream.manifest
+//        val jarEntry = jarInputStream.nextJarEntry
+
+
+        // TODO Remove once new version is done
+        oldExtractFiles(location)
+
+        println("Class Files Extracted")
+    }
+
+    private fun oldExtractFiles(location: DependencyLocation) {
+        val commandBuilder = StringBuilder().apply {
+            append("unzip")
+            append(" -o")
+            append(" ${getDependencyCacheDir()}/${location.cacheKey}/${location.fileName}")
+            append(" -d")
+            append(" ${getDependencyCacheDir()}/${location.cacheKey}/class-files/")
         }
 
-        return root
-    }
+        println("Running command: $commandBuilder")
 
-// org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2
-// segment[0] = org.jetbrains.kotlinx
-// segment[1] = kotlinx-coroutines-core
-// segment[2] = 1.10.2
+        val processBuilder = ProcessBuilder("/bin/bash", "-c", commandBuilder.toString())
+            .redirectOutput(ProcessBuilder.Redirect.PIPE)
+            .redirectError(ProcessBuilder.Redirect.PIPE)
+            .start()
 
-    // https://repo1.maven.org/maven2/org/jetbrains/kotlinx/kotlinx-coroutines-core/1.10.2/kotlinx-coroutines-core-1.10.2.jar
-//  Maven domain                        segment[0]                 segment[1]                 segment[2]    segment[1]                   segment[2]
-// [https://repo1.maven.org/maven2]    [org/jetbrains/kotlinx]    [kotlinx-coroutines-core]  [1.10.2]      [kotlinx-coroutines-core]    [1.10.2]
-// MavenDomain/segment[0]/segment[1]/segment[2]/segment[1]-segment[2].jar
-    private fun buildUrl(dependency: String): DependencyLocation {
-        val segments = dependency.split(":")
-        val path = segments[0].replace('.', '/')
-        val id = segments[1]
-        val version = segments[2]
+        processBuilder.waitFor(5_000L, TimeUnit.MILLISECONDS)
 
-        return DependencyLocation(
-            fileName = "$version.jar",
-            cacheKey = "$path/$id/$version",
-            remoteUrl = "https://repo1.maven.org/maven2/$path/$id/$version/$id-$version.jar"
-        )
+        println("Command Complete")
+
+        val outputReader = processBuilder.inputStream.bufferedReader()
+        val output = outputReader.readText()
+        val errorReader = processBuilder.errorStream.bufferedReader()
+        val error = errorReader.readText()
+
+        if (output.isNotBlank()) {
+            println(output)
+        }
+        if (error.isNotBlank()) {
+            println(error)
+        }
+
+        outputReader.close()
+        errorReader.close()
     }
 }
-
-data class DependencyLocation(
-    val fileName: String,
-    val cacheKey: String,
-    val remoteUrl: String
-)

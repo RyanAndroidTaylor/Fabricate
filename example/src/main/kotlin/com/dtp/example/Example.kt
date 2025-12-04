@@ -3,7 +3,7 @@ package com.dtp.example
 import com.dtp.example.other.Other
 import com.dtp.sub.SubModuleClass
 import retrofit2.Call
-//import kotlinx.coroutines.Job
+//import kotlinx.coroutines.CoroutineScope
 //import kotlinx.coroutines.Dispatchers
 //import kotlinx.coroutines.launch
 
