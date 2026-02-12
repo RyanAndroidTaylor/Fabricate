@@ -16,6 +16,10 @@ data class DependencyLocation(
 //  Maven domain                        segment[0]                 segment[1]                 segment[2]    segment[1]                   segment[2]
 // [https://repo1.maven.org/maven2]    [org/jetbrains/kotlinx]    [kotlinx-coroutines-core]  [1.10.2]      [kotlinx-coroutines-core]    [1.10.2]
 // MavenDomain/segment[0]/segment[1]/segment[2]/segment[1]-segment[2].jar
+/**
+ * Creates a [DependencyLocation] that holds information about the location in caches as well as the remote URL for the
+ * dependencies. Dependencies are caches at "user dir"/.fabricate/"dependency group"/"dependency name"/"version"/
+ */
 fun buildLocation(dependency: String): DependencyLocation {
     val segments = dependency.split(":")
     val path = segments[0].replace('.', '/')

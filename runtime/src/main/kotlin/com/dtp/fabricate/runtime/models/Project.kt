@@ -50,6 +50,12 @@ class Project(
         }
     }
 
+    /**
+     * Builds an ordered list of the [rootTask] and all of its dependencies.
+     *
+     * The list is ordered based on which tasks needs to run first. So index 0 is the task that all other tasks depend
+     * on and the last index is the [rootTask] which depends on all other tasks
+     */
     fun buildGraph(rootTask: String): List<String> {
         val graph = mutableListOf<MutableSet<String>>(mutableSetOf())
         val layers = mutableListOf(listOf(rootTask))
@@ -66,6 +72,7 @@ class Project(
 
                 graph[layer].add(taskName)
 
+                // Making sure task is not in a previous layer
                 for (i in (layer - 1) downTo 0) {
                     graph[i].remove(taskName)
                 }
@@ -81,7 +88,6 @@ class Project(
             layer++
         }
 
-        return graph.flatMap { it }
-            .reversed()
+        return graph.flatten().reversed()
     }
 }

@@ -15,6 +15,13 @@ class DependencyScope {
 }
 
 sealed interface Dependency {
+    /**
+     * A remote dependency that needs to be downloaded. Currently, this only supports Maven dependencies.
+     */
     data class Remote(val value: String) : Dependency
+
+    /**
+     * A dependency on another Project
+     */
     data class Project(val module: String) : Dependency
 }

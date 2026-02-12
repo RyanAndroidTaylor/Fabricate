@@ -63,7 +63,6 @@ class BuildTask : AbstractTask() {
             // We need to make sure this is uniquely named for each module when building a multi module project
             // See: https://blog.jetbrains.com/kotlin/2015/06/improving-java-interop-top-level-functions-and-properties/
             append(" -module-name ${project.name}")
-
         }
 
         println("Compiling with: $commandBuilder")

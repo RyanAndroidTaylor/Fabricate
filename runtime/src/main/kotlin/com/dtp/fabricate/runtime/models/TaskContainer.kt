@@ -12,7 +12,7 @@ class TaskContainer(project: Project) {
     /**
      * List containing all Registered task.
      * Registering a task does not imply that it will be created and run. For a Task to be created, configured and ran
-     * it must be added to the [queuedTasks] or one of the [queuedTasks] has a dependency on it
+     * it must be added to the queuedTasks or one of the queuedTasks has a dependency on it
      */
     private val taskRegistry: MutableMap<String, TaskProvider<*>> = mutableMapOf()
 

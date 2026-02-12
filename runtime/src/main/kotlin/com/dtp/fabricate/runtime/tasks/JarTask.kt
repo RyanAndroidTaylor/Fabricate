@@ -7,14 +7,26 @@ import com.dtp.fabricate.runtime.deps.getDependencyCacheDir
 import com.dtp.fabricate.runtime.models.Dependency
 import com.dtp.fabricate.runtime.models.Project
 import java.io.File
-import java.nio.file.Files
-import java.nio.file.attribute.PosixFilePermission
 import java.util.jar.Attributes
 import java.util.jar.JarOutputStream
 import java.util.jar.Manifest
 import java.util.zip.CRC32
 import java.util.zip.ZipEntry
 
+//TODO Getting closer, had to include the kotlin stdlib and coroutines and now I'm getting this error.
+// I'm guessing the coroutine library and kotlin-stdlib will have some duplicate stuff. If they are
+// compatible versions is it alright to just take one and skip the other?
+/*
+Exception in thread "main" java.util.zip.ZipException: duplicate entry: META-INF/versions/9/module-info.class
+	at java.base/java.util.zip.ZipOutputStream.putNextEntry(ZipOutputStream.java:245)
+	at java.base/java.util.jar.JarOutputStream.putNextEntry(JarOutputStream.java:115)
+	at com.dtp.fabricate.runtime.tasks.JarTask.addFile(JarTask.kt:132)
+	at com.dtp.fabricate.runtime.tasks.JarTask.addDependencies(JarTask.kt:91)
+	at com.dtp.fabricate.runtime.tasks.JarTask.execute(JarTask.kt:57)
+	at com.dtp.fabricate.runtime.daemon.SimpleDaemon.runTask(SimpleDaemon.kt:34)
+	at com.dtp.fabricate.runtime.daemon.SimpleDaemon.executeCommands(SimpleDaemon.kt:19)
+	at com.dtp.fabricate.MainKt.main(Main.kt:39)
+	 */
 class JarTask : AbstractTask() {
     lateinit var mainClass: String
 
@@ -31,14 +43,6 @@ class JarTask : AbstractTask() {
         if (!outputFile.exists()) {
             outputFile.createNewFile()
         }
-//        Files.setPosixFilePermissions(
-//            outputFile.toPath(),
-//            setOf(
-//                PosixFilePermission.OTHERS_EXECUTE,
-//                PosixFilePermission.OTHERS_WRITE,
-//                PosixFilePermission.OTHERS_READ
-//            ),
-//        )
 
         val fileOutputStream = outputFile.outputStream()
 
@@ -51,22 +55,48 @@ class JarTask : AbstractTask() {
 
         addProject(project, jarOutputStream)
 
-        //TODO I think we need to add all dependency class files.
-
         //TODO Need to add kotlin_module files (not sure how to do this)
+        addDependencies(project, jarOutputStream)
 
         jarOutputStream.close()
+
+        println("Jar Complete!")
     }
 
-    private fun addRemoteFiles(project: Project, jarOutputStream: JarOutputStream) {
+    private fun addDependencies(project: Project, jarOutputStream: JarOutputStream) {
+        //TODO Need to test
         project.dependencyScope?.dependencies?.forEach { dependency ->
             when (dependency) {
-                is Dependency.Project -> addProject(project, jarOutputStream)
+                is Dependency.Project -> {
+                    //TODO Maybe?
+//                    addProject(project, jarOutputStream)
+                }
 
                 is Dependency.Remote -> {
-                    val url = buildLocation(dependency.value)
+                    val location = buildLocation(dependency.value)
 
-                    val file = "${getDependencyCacheDir()}/${url.cacheKey}/"
+                    val rootFile = File("${getDependencyCacheDir()}/${location.cacheKey}/class-files/")
+
+                    val dirs = mutableListOf(rootFile)
+
+                    while (dirs.isNotEmpty()) {
+                        val current = dirs.removeAt(0)
+
+                        current.listFiles()?.forEach { file ->
+                            if (file.isDirectory) {
+                                dirs.add(file)
+                            } else {
+                                //TODO This is not great. Probably should combine the manifest files into a single file
+                                // Most of them won't have any unique info but there is a chance one will.
+                                // Guess I should also do a little research to make sure combining them is what should
+                                // be done.
+                                if (!file.path.contains("MANIFEST.MF")) {
+                                    val relativePath = file.relativeTo(rootFile).path
+                                    addFile(file, relativePath, jarOutputStream)
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -103,8 +133,12 @@ class JarTask : AbstractTask() {
             size = bytes.size.toLong()
         }
 
-        jar.putNextEntry(entry)
-        jar.write(bytes)
-        jar.closeEntry()
+        try {
+            jar.putNextEntry(entry)
+            jar.write(bytes)
+            jar.closeEntry()
+        } catch (e: Exception) {
+//            e.printStackTrace()
+        }
     }
 }

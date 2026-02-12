@@ -9,6 +9,10 @@ import java.net.URI
 import java.util.concurrent.TimeUnit
 import java.util.jar.JarInputStream
 
+/**
+ * SyncTask downloads and caches all dependencies of type Dependency.Remote, skipping and dependencies that have
+ * already been cached.
+ */
 class SyncTask : AbstractTask() {
 
     val network = Network()
@@ -24,18 +28,20 @@ class SyncTask : AbstractTask() {
         }
     }
 
+    /**
+     * Downloads the dependency jar then extracts the class file caching everything in the Fabricate
+     * cache directory (see [DependencyLocation]).
+     */
     private fun downloadDependency(dependency: Dependency.Remote) {
         val location = buildLocation(dependency.value)
 
         val dependency = cache.find(location.cacheKey)
 
         if (dependency != null) {
-            //TODO Temp for testing
-//            extractClassFiles(location)
-
             println("(UP TO DATE): ${location.cacheKey}")
         } else {
             println("Downloading: ${getDependencyCacheDir()}/${location.cacheKey}/${location.fileName}")
+
             val bytes = network.download(URI(location.remoteUrl).toURL())
 
             val directory = File("${getDependencyCacheDir()}/${location.cacheKey}/")

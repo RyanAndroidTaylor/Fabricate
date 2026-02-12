@@ -3,6 +3,9 @@ package com.dtp.fabricate.runtime.tasks
 import com.dtp.fabricate.runtime.BUILD_LIBS_DIR
 import java.io.File
 
+/**
+ * Looks for a Jar in the projects build/libs folder and runs it
+ */
 class RunTask : AbstractTask() {
     override fun execute() {
         println("Running...\n")

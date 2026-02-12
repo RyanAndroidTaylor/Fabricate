@@ -37,8 +37,9 @@ class DependencyCache(val root: File) {
 }
 
 fun getDependencyCacheDir(): File {
-    //TODO Need to figure out how to get to ~/ dir
-    val root = File("/Users/ryantaylor/.fabricate/")
+    val userRootDir = System.getProperty("user.home")
+
+    val root = File("$userRootDir/.fabricate/")
 
     if (!root.exists()) {
         root.mkdir()
