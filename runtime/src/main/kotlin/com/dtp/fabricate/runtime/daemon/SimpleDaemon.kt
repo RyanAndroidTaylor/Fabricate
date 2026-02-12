@@ -16,13 +16,21 @@ class SimpleDaemon : Daemon {
         commands.forEach { (projectName, command) ->
             // No module was specified so build entire project and all submodules
             if (projectName == null) {
-                runTask(command, rootProject)
+                if (rootProject.tasks.hasTask(command)) {
+                    runTask(command, rootProject)
+                } else {
+                    println("No task found with name: $command")
+                }
             } else {
                 rootProject.subProject(projectName)?.let { project ->
-                    println("Running command in ${project.name}")
+                    if (project.tasks.hasTask(command)) {
+                        println("Running command in ${project.name}")
 
-                    project.buildGraph(command).forEach { taskName ->
-                        project.tasks.named<Task>(taskName).task.execute()
+                        project.buildGraph(command).forEach { taskName ->
+                            project.tasks.named<Task>(taskName).task.execute()
+                        }
+                    } else {
+                        println("No task found with name: $command")
                     }
                 } ?: println("Unable to find project with name $projectName")
             }
