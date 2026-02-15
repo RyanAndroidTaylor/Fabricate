@@ -6,6 +6,7 @@ import com.dtp.fabricate.runtime.deps.buildLocation
 import com.dtp.fabricate.runtime.deps.getDependencyCacheDir
 import com.dtp.fabricate.runtime.models.Dependency
 import com.dtp.fabricate.runtime.models.Project
+import com.dtp.fabricate.runtime.relativeFiles
 import java.io.File
 import java.util.jar.Attributes
 import java.util.jar.JarOutputStream
@@ -13,25 +14,17 @@ import java.util.jar.Manifest
 import java.util.zip.CRC32
 import java.util.zip.ZipEntry
 
-//TODO Getting closer, had to include the kotlin stdlib and coroutines and now I'm getting this error.
-// I'm guessing the coroutine library and kotlin-stdlib will have some duplicate stuff. If they are
-// compatible versions is it alright to just take one and skip the other?
-/*
-Exception in thread "main" java.util.zip.ZipException: duplicate entry: META-INF/versions/9/module-info.class
-	at java.base/java.util.zip.ZipOutputStream.putNextEntry(ZipOutputStream.java:245)
-	at java.base/java.util.jar.JarOutputStream.putNextEntry(JarOutputStream.java:115)
-	at com.dtp.fabricate.runtime.tasks.JarTask.addFile(JarTask.kt:132)
-	at com.dtp.fabricate.runtime.tasks.JarTask.addDependencies(JarTask.kt:91)
-	at com.dtp.fabricate.runtime.tasks.JarTask.execute(JarTask.kt:57)
-	at com.dtp.fabricate.runtime.daemon.SimpleDaemon.runTask(SimpleDaemon.kt:34)
-	at com.dtp.fabricate.runtime.daemon.SimpleDaemon.executeCommands(SimpleDaemon.kt:19)
-	at com.dtp.fabricate.MainKt.main(Main.kt:39)
-	 */
 class JarTask : AbstractTask() {
-    lateinit var mainClass: String
+    var mainClass: String? = null
 
     override fun execute() {
         println("Generating Jar for ${project.name}...")
+
+        val mainClass = mainClass ?: run {
+            println("mainClass has not been setup for JarTask. Please make sure you specify the mainClass in your build file")
+
+            return
+        }
 
         val libsDir = File("${project.projectDir.path}/$BUILD_LIBS_DIR")
         val outputFile = File(libsDir, "/${project.name}.jar")
@@ -55,7 +48,6 @@ class JarTask : AbstractTask() {
 
         addProject(project, jarOutputStream)
 
-        //TODO Need to add kotlin_module files (not sure how to do this)
         addDependencies(project, jarOutputStream)
 
         jarOutputStream.close()
@@ -68,8 +60,12 @@ class JarTask : AbstractTask() {
         project.dependencyScope?.dependencies?.forEach { dependency ->
             when (dependency) {
                 is Dependency.Project -> {
-                    //TODO Maybe?
-//                    addProject(project, jarOutputStream)
+                    //TODO Rtaylor -
+                    // When the root project is added it adds all class files form BUILD_CLASSES_DIR which would
+                    // include any subproject class files. So there is no need to add subprojects here.
+                    // We may one to change this because this makes assumptions about the BuildTask and if
+                    // they change in the future it would break this. But if we pulled the class files from
+                    // the subprojects BUILD_CLASSES_DIR we wouldn't run into this issue
                 }
 
                 is Dependency.Remote -> {
@@ -77,24 +73,11 @@ class JarTask : AbstractTask() {
 
                     val rootFile = File("${getDependencyCacheDir()}/${location.cacheKey}/class-files/")
 
-                    val dirs = mutableListOf(rootFile)
-
-                    while (dirs.isNotEmpty()) {
-                        val current = dirs.removeAt(0)
-
-                        current.listFiles()?.forEach { file ->
-                            if (file.isDirectory) {
-                                dirs.add(file)
-                            } else {
-                                //TODO This is not great. Probably should combine the manifest files into a single file
-                                // Most of them won't have any unique info but there is a chance one will.
-                                // Guess I should also do a little research to make sure combining them is what should
-                                // be done.
-                                if (!file.path.contains("MANIFEST.MF")) {
-                                    val relativePath = file.relativeTo(rootFile).path
-                                    addFile(file, relativePath, jarOutputStream)
-                                }
-                            }
+                    rootFile.relativeFiles { file, string ->
+                        //TODO Rtaylor - Need to make a Manifest merger
+                        if (!file.path.contains("MANIFEST.MF")) {
+                            val relativePath = file.relativeTo(rootFile).path
+                            addFile(file, relativePath, jarOutputStream)
                         }
                     }
                 }
@@ -103,21 +86,8 @@ class JarTask : AbstractTask() {
     }
 
     private fun addProject(project: Project, jarOutputStream: JarOutputStream) {
-        val inputFile = File("${project.projectDir.path}/$BUILD_CLASSES_DIR")
-
-        val dirs = mutableListOf(inputFile)
-
-        while (dirs.isNotEmpty()) {
-            val current = dirs.removeAt(dirs.lastIndex)
-
-            current.listFiles()?.forEach { file ->
-                if (file.isDirectory) {
-                    dirs.add(file)
-                } else {
-                    val relativePath = file.relativeTo(inputFile).path
-                    addFile(file, relativePath, jarOutputStream)
-                }
-            }
+        File("${project.projectDir.path}/$BUILD_CLASSES_DIR").relativeFiles { file, relativePath ->
+            addFile(file, relativePath, jarOutputStream)
         }
     }
 

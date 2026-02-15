@@ -1,5 +1,6 @@
 package com.dtp.fabricate.runtime.tasks
 
+import com.dtp.fabricate.runtime.relativeFiles
 import java.io.File
 import java.util.zip.CRC32
 import java.util.zip.ZipEntry
@@ -29,24 +30,12 @@ class ZipTask : AbstractTask() {
         val fileOutputStream = outputFile.outputStream()
         zipStream = ZipOutputStream(fileOutputStream)
 
-        val dirs = mutableListOf<File>()
-
         if (root.isDirectory) {
-            dirs.add(root)
+            root.relativeFiles { file, _ ->
+                compressFile(file)
+            }
         } else {
             compressFile(root)
-        }
-
-        while (dirs.isNotEmpty()) {
-            val current = dirs.removeAt(dirs.lastIndex)
-
-            current.listFiles()?.forEach { file ->
-                if (file.isDirectory) {
-                    dirs.add(file)
-                } else {
-                    compressFile(file)
-                }
-            }
         }
 
         zipStream.close()

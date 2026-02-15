@@ -123,7 +123,7 @@ private fun TaskContainer.registerDefaultTasks() {
     }
 
     register("run", RunTask::class) {
-        dependsOn("build")
+        dependsOn("jar")
     }
 
     register("jar", JarTask::class) {
