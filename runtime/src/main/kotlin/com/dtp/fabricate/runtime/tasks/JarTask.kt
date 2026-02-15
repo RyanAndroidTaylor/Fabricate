@@ -7,12 +7,11 @@ import com.dtp.fabricate.runtime.deps.getDependencyCacheDir
 import com.dtp.fabricate.runtime.models.Dependency
 import com.dtp.fabricate.runtime.models.Project
 import com.dtp.fabricate.runtime.relativeFiles
+import com.dtp.fabricate.runtime.putRelativeFile
 import java.io.File
 import java.util.jar.Attributes
 import java.util.jar.JarOutputStream
 import java.util.jar.Manifest
-import java.util.zip.CRC32
-import java.util.zip.ZipEntry
 
 class JarTask : AbstractTask() {
     var mainClass: String? = null
@@ -73,11 +72,10 @@ class JarTask : AbstractTask() {
 
                     val rootFile = File("${getDependencyCacheDir()}/${location.cacheKey}/class-files/")
 
-                    rootFile.relativeFiles { file, string ->
+                    rootFile.relativeFiles { file, relativePath ->
                         //TODO Rtaylor - Need to make a Manifest merger
                         if (!file.path.contains("MANIFEST.MF")) {
-                            val relativePath = file.relativeTo(rootFile).path
-                            addFile(file, relativePath, jarOutputStream)
+                            jarOutputStream.putRelativeFile(file, relativePath)
                         }
                     }
                 }
@@ -87,28 +85,7 @@ class JarTask : AbstractTask() {
 
     private fun addProject(project: Project, jarOutputStream: JarOutputStream) {
         File("${project.projectDir.path}/$BUILD_CLASSES_DIR").relativeFiles { file, relativePath ->
-            addFile(file, relativePath, jarOutputStream)
-        }
-    }
-
-    private fun addFile(file: File, relativePath: String, jar: JarOutputStream) {
-        val bytes = file.readBytes()
-
-        val entry = ZipEntry(relativePath).apply {
-            val crc32 = CRC32()
-            crc32.update(bytes)
-
-            crc = crc32.value
-            method = ZipEntry.STORED
-            size = bytes.size.toLong()
-        }
-
-        try {
-            jar.putNextEntry(entry)
-            jar.write(bytes)
-            jar.closeEntry()
-        } catch (e: Exception) {
-//            e.printStackTrace()
+            jarOutputStream.putRelativeFile(file, relativePath)
         }
     }
 }
